@@ -4,10 +4,25 @@ import React from 'react';
 interface UserProfileProps {
   userName: string;
   userEmail: string;
+  userAvatar?: string | null;
+  joinedAt?: string;
   onNavigateToSettings: () => void;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ userName, userEmail, onNavigateToSettings }) => {
+const UserProfile: React.FC<UserProfileProps> = ({
+  userName,
+  userEmail,
+  userAvatar,
+  joinedAt,
+  onNavigateToSettings
+}) => {
+  // Format joined date (e.g., "Octubre 2023")
+  const formattedJoinDate = joinedAt ? new Date(joinedAt).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'recientemente';
+  const displayJoinDate = formattedJoinDate.charAt(0).toUpperCase() + formattedJoinDate.slice(1);
+
+  // Default fallback avatar if none provided
+  const avatarSrc = userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
+
   return (
     <main className="flex-grow p-4 md:p-8 lg:px-12 max-w-[1000px] mx-auto w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -29,7 +44,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userName, userEmail, onNaviga
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm flex flex-col items-center text-center">
             <div className="relative mb-4">
               <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP3Ue0DsunU4p0nyLgaEZAGA6SCqkAnWtoIMMAh2y2XW0o0JHfLmV2XXosN_0CxEhVZc5BM3ndwBy2ou0GkGgdomRI7Zb3ii8HqYbQqQ-xUKilmm--GTX9PHb87pgx9iK4KabtdUznolYJnuioIrSAj3PK2tSmIZMDYiWhXc5CmfIdrcPQ3zS_UH9TNjta7SKXVaucgOXWux1mb3QS0_ItfKXgAbBKZw7tNyU-oXWJa-Gj3_Ye42OELUzkqMFdv5YlTcroFASltTI"
+                src={avatarSrc}
                 alt={userName}
                 className="h-32 w-32 rounded-full border-4 border-white dark:border-surface-dark shadow-md object-cover"
               />
@@ -38,7 +53,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userName, userEmail, onNaviga
               </button>
             </div>
             <h2 className="text-xl font-bold text-[#121716] dark:text-white">{userName}</h2>
-            <p className="text-sm text-[#678380] dark:text-gray-400">Miembro desde Octubre 2023</p>
+            <p className="text-sm text-[#678380] dark:text-gray-400">Miembro desde {displayJoinDate}</p>
             <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">
               <span className="material-symbols-outlined text-sm">verified_user</span> Usuario Verificado
             </div>
@@ -79,12 +94,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ userName, userEmail, onNaviga
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">Teléfono</label>
-                <input type="tel" defaultValue="+52 55 1234 5678" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
+                <input type="tel" placeholder="+52 (000) 000-0000" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">Ubicación Actual</label>
                 <div className="relative">
-                  <input type="text" defaultValue="Roma Norte, CDMX" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-primary" />
+                  <input type="text" placeholder="Ej. Ciudad de México" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-primary" />
                   <span className="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-xl">location_on</span>
                 </div>
               </div>

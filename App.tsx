@@ -25,6 +25,8 @@ const App: React.FC = () => {
 
   const userName = session?.user?.user_metadata?.full_name || 'Usuario';
   const userEmail = session?.user?.email || '';
+  const userAvatar = session?.user?.user_metadata?.avatar_url || null;
+  const userJoinedAt = session?.user?.created_at || new Date().toISOString();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -195,7 +197,15 @@ const App: React.FC = () => {
           />
         );
       case AppView.USER_PROFILE:
-        return <UserProfile userName={userName} userEmail={userEmail} onNavigateToSettings={() => setCurrentView(AppView.SETTINGS)} />;
+        return (
+          <UserProfile
+            userName={userName}
+            userEmail={userEmail}
+            userAvatar={userAvatar}
+            joinedAt={userJoinedAt}
+            onNavigateToSettings={() => setCurrentView(AppView.SETTINGS)}
+          />
+        );
       case AppView.SETTINGS:
         return (
           <Settings
