@@ -1,0 +1,9 @@
+
+{
+  "name": "parental",
+  "description": "Plataforma Digital Guía Parental. Un sistema integral de acompañamiento, directorio y seguridad para familias.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}

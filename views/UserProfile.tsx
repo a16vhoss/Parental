@@ -1,0 +1,128 @@
+
+import React from 'react';
+
+interface UserProfileProps {
+  onNavigateToSettings: () => void;
+}
+
+const UserProfile: React.FC<UserProfileProps> = ({ onNavigateToSettings }) => {
+  return (
+    <main className="flex-grow p-4 md:p-8 lg:px-12 max-w-[1000px] mx-auto w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-black text-[#121716] dark:text-white tracking-tight">Mi Cuenta</h1>
+          <p className="text-[#678380] dark:text-gray-400 mt-1">Gestiona tu información personal y preferencias de seguridad.</p>
+        </div>
+        <button 
+          onClick={onNavigateToSettings}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-sm font-bold shadow-sm"
+        >
+          <span className="material-symbols-outlined text-[20px]">settings</span>
+          Configuración
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-1 space-y-6">
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm flex flex-col items-center text-center">
+            <div className="relative mb-4">
+              <img 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP3Ue0DsunU4p0nyLgaEZAGA6SCqkAnWtoIMMAh2y2XW0o0JHfLmV2XXosN_0CxEhVZc5BM3ndwBy2ou0GkGgdomRI7Zb3ii8HqYbQqQ-xUKilmm--GTX9PHb87pgx9iK4KabtdUznolYJnuioIrSAj3PK2tSmIZMDYiWhXc5CmfIdrcPQ3zS_UH9TNjta7SKXVaucgOXWux1mb3QS0_ItfKXgAbBKZw7tNyU-oXWJa-Gj3_Ye42OELUzkqMFdv5YlTcroFASltTI"
+                alt="Mariana"
+                className="h-32 w-32 rounded-full border-4 border-white dark:border-surface-dark shadow-md object-cover"
+              />
+              <button className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
+                <span className="material-symbols-outlined text-sm">photo_camera</span>
+              </button>
+            </div>
+            <h2 className="text-xl font-bold text-[#121716] dark:text-white">Mariana González</h2>
+            <p className="text-sm text-[#678380] dark:text-gray-400">Miembro desde Octubre 2023</p>
+            <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">
+              <span className="material-symbols-outlined text-sm">verified_user</span> Usuario Verificado
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm">
+            <h3 className="font-bold text-sm uppercase tracking-wider text-gray-400 mb-4">Estadísticas</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-[#678380]">Miembros registrados</span>
+                <span className="font-bold text-primary">3</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-[#678380]">Alertas apoyadas</span>
+                <span className="font-bold text-primary">14</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-[#678380]">Reseñas en directorio</span>
+                <span className="font-bold text-primary">8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="md:col-span-2 space-y-6">
+          <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm">
+            <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">person</span> Información Personal
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase">Nombre Completo</label>
+                <input type="text" defaultValue="Mariana González R." className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase">Correo Electrónico</label>
+                <input type="email" defaultValue="mariana.g@email.com" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase">Teléfono</label>
+                <input type="tel" defaultValue="+52 55 1234 5678" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase">Ubicación Actual</label>
+                <div className="relative">
+                  <input type="text" defaultValue="Roma Norte, CDMX" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-primary" />
+                  <span className="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-xl">location_on</span>
+                </div>
+              </div>
+            </div>
+            <button className="mt-8 bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20">
+              Guardar Cambios
+            </button>
+          </section>
+
+          <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm">
+            <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">notifications_active</span> Preferencias de Notificación
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-background-dark rounded-xl">
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm text-[#121716] dark:text-white">Alertas Comunitarias</span>
+                  <span className="text-xs text-[#678380]">Recibe avisos de niños extraviados en tu zona</span>
+                </div>
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-background-dark rounded-xl">
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm text-[#121716] dark:text-white">Recordatorios de Salud</span>
+                  <span className="text-xs text-[#678380]">Citas médicas y calendario de vacunación</span>
+                </div>
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  );
+};
+
+export default UserProfile;
