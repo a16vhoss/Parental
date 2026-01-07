@@ -54,8 +54,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
       // Clear success message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
 
-      // Reload page to reflect changes if necessary, or rely on App.tsx session listener
-      window.location.reload();
+      // Notify parent/refresh session manually if needed, or rely on automatic session update
+      // triggering a re-render in App.tsx via useUser hook or similar.
+      // Since App.tsx listens to onAuthStateChange, the session update should propagate.
 
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
