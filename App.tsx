@@ -27,6 +27,15 @@ const App: React.FC = () => {
   const userEmail = session?.user?.email || '';
   const userAvatar = session?.user?.user_metadata?.avatar_url || null;
   const userJoinedAt = session?.user?.created_at || new Date().toISOString();
+  const userPhone = session?.user?.user_metadata?.phone || '';
+  const userLocation = session?.user?.user_metadata?.location || '';
+
+  const refreshSession = async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (session) {
+      setSession(session);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -203,6 +212,9 @@ const App: React.FC = () => {
             userEmail={userEmail}
             userAvatar={userAvatar}
             joinedAt={userJoinedAt}
+            userPhone={userPhone}
+            userLocation={userLocation}
+            onProfileUpdate={refreshSession}
             onNavigateToSettings={() => setCurrentView(AppView.SETTINGS)}
           />
         );

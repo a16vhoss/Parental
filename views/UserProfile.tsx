@@ -7,6 +7,9 @@ interface UserProfileProps {
   userEmail: string;
   userAvatar?: string | null;
   joinedAt?: string;
+  userPhone?: string;
+  userLocation?: string;
+  onProfileUpdate?: () => void;
   onNavigateToSettings: () => void;
 }
 
@@ -15,6 +18,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   userEmail,
   userAvatar,
   joinedAt,
+  userPhone,
+  userLocation,
+  onProfileUpdate,
   onNavigateToSettings
 }) => {
   // Format joined date (e.g., "Octubre 2023")
@@ -23,17 +29,17 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   // State for form fields
   const [fullName, setFullName] = useState(userName);
-  const [phone, setPhone] = useState('');
-  const [location, setLocation] = useState('');
+  const [phone, setPhone] = useState(userPhone || '');
+  const [location, setLocation] = useState(userLocation || '');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Initialize state when props change
   useEffect(() => {
     setFullName(userName);
-    // Note: Phone and Location are not currently passed in props but we can fetch them or pass them if stored in metadata
-    // For now, we'll just handle local state updates
-  }, [userName]);
+    if (userPhone) setPhone(userPhone);
+    if (userLocation) setLocation(userLocation);
+  }, [userName, userPhone, userLocation]);
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -57,6 +63,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
       // Notify parent/refresh session manually if needed, or rely on automatic session update
       // triggering a re-render in App.tsx via useUser hook or similar.
       // Since App.tsx listens to onAuthStateChange, the session update should propagate.
+
+      // Notify parent to refresh session data
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
 
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
