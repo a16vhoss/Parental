@@ -2,10 +2,12 @@
 import React from 'react';
 
 interface UserProfileProps {
+  userName: string;
+  userEmail: string;
   onNavigateToSettings: () => void;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ onNavigateToSettings }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ userName, userEmail, onNavigateToSettings }) => {
   return (
     <main className="flex-grow p-4 md:p-8 lg:px-12 max-w-[1000px] mx-auto w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -13,7 +15,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onNavigateToSettings }) => {
           <h1 className="text-3xl font-black text-[#121716] dark:text-white tracking-tight">Mi Cuenta</h1>
           <p className="text-[#678380] dark:text-gray-400 mt-1">Gestiona tu información personal y preferencias de seguridad.</p>
         </div>
-        <button 
+        <button
           onClick={onNavigateToSettings}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-sm font-bold shadow-sm"
         >
@@ -26,16 +28,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ onNavigateToSettings }) => {
         <div className="md:col-span-1 space-y-6">
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm flex flex-col items-center text-center">
             <div className="relative mb-4">
-              <img 
+              <img
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP3Ue0DsunU4p0nyLgaEZAGA6SCqkAnWtoIMMAh2y2XW0o0JHfLmV2XXosN_0CxEhVZc5BM3ndwBy2ou0GkGgdomRI7Zb3ii8HqYbQqQ-xUKilmm--GTX9PHb87pgx9iK4KabtdUznolYJnuioIrSAj3PK2tSmIZMDYiWhXc5CmfIdrcPQ3zS_UH9TNjta7SKXVaucgOXWux1mb3QS0_ItfKXgAbBKZw7tNyU-oXWJa-Gj3_Ye42OELUzkqMFdv5YlTcroFASltTI"
-                alt="Mariana"
+                alt={userName}
                 className="h-32 w-32 rounded-full border-4 border-white dark:border-surface-dark shadow-md object-cover"
               />
               <button className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-sm">photo_camera</span>
               </button>
             </div>
-            <h2 className="text-xl font-bold text-[#121716] dark:text-white">Mariana González</h2>
+            <h2 className="text-xl font-bold text-[#121716] dark:text-white">{userName}</h2>
             <p className="text-sm text-[#678380] dark:text-gray-400">Miembro desde Octubre 2023</p>
             <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">
               <span className="material-symbols-outlined text-sm">verified_user</span> Usuario Verificado
@@ -69,11 +71,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ onNavigateToSettings }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">Nombre Completo</label>
-                <input type="text" defaultValue="Mariana González R." className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
+                <input type="text" defaultValue={userName} className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">Correo Electrónico</label>
-                <input type="email" defaultValue="mariana.g@email.com" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
+                <input type="email" defaultValue={userEmail} className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">Teléfono</label>

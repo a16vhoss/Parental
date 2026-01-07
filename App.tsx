@@ -23,6 +23,9 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<any>(null);
 
+  const userName = session?.user?.user_metadata?.full_name || 'Usuario';
+  const userEmail = session?.user?.email || '';
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -161,6 +164,7 @@ const App: React.FC = () => {
       case AppView.DASHBOARD:
         return (
           <Dashboard
+            userName={userName}
             childrenList={family.filter(m => m.role === 'Hijo/a')}
             onViewProfile={handleViewMemberProfile}
             onAddChild={() => setCurrentView(AppView.ADD_CHILD)}
@@ -191,7 +195,7 @@ const App: React.FC = () => {
           />
         );
       case AppView.USER_PROFILE:
-        return <UserProfile onNavigateToSettings={() => setCurrentView(AppView.SETTINGS)} />;
+        return <UserProfile userName={userName} userEmail={userEmail} onNavigateToSettings={() => setCurrentView(AppView.SETTINGS)} />;
       case AppView.SETTINGS:
         return (
           <Settings
@@ -217,6 +221,7 @@ const App: React.FC = () => {
     <div className="flex min-h-screen">
       {showSidebar && (
         <Sidebar
+          userName={userName}
           activeView={activeViewMapper(currentView)}
           onNavigate={setCurrentView}
         />

@@ -3,11 +3,12 @@ import React from 'react';
 import { AppView } from '../types';
 
 interface SidebarProps {
+  userName: string;
   activeView: AppView;
   onNavigate: (view: AppView) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
+const Sidebar: React.FC<SidebarProps> = ({ userName, activeView, onNavigate }) => {
   const navItems = [
     { view: AppView.DASHBOARD, label: 'Panel de Control', icon: 'grid_view' },
     { view: AppView.CHAT, label: 'Asistente IA', icon: 'smart_toy' },
@@ -33,11 +34,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
             <button
               key={item.view}
               onClick={() => onNavigate(item.view)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                activeView === item.view 
-                ? 'bg-background-light dark:bg-white/5 text-primary' 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${activeView === item.view
+                ? 'bg-background-light dark:bg-white/5 text-primary'
                 : 'text-[#678380] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#121716] dark:hover:text-white'
-              }`}
+                }`}
             >
               <span className={`material-symbols-outlined ${activeView === item.view ? 'icon-filled' : ''} group-hover:scale-110 transition-transform`}>
                 {item.icon}
@@ -49,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
       </div>
 
       <div className="flex flex-col gap-4">
-        <button 
+        <button
           onClick={() => onNavigate(AppView.EMERGENCY)}
           className="relative overflow-hidden w-full group cursor-pointer rounded-xl bg-rose-500 hover:bg-rose-600 text-white p-4 transition-all shadow-lg shadow-rose-200 dark:shadow-none"
         >
@@ -61,12 +61,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
         </button>
 
         <div className="flex items-center gap-3 px-2 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-          <button 
+          <button
             onClick={() => onNavigate(AppView.USER_PROFILE)}
             className={`flex items-center gap-3 flex-1 overflow-hidden p-2 rounded-xl transition-all hover:bg-gray-50 dark:hover:bg-white/5 ${activeView === AppView.USER_PROFILE ? 'bg-gray-50 dark:bg-white/5' : ''}`}
           >
             <div className="relative shrink-0">
-              <img 
+              <img
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP3Ue0DsunU4p0nyLgaEZAGA6SCqkAnWtoIMMAh2y2XW0o0JHfLmV2XXosN_0CxEhVZc5BM3ndwBy2ou0GkGgdomRI7Zb3ii8HqYbQqQ-xUKilmm--GTX9PHb87pgx9iK4KabtdUznolYJnuioIrSAj3PK2tSmIZMDYiWhXc5CmfIdrcPQ3zS_UH9TNjta7SKXVaucgOXWux1mb3QS0_ItfKXgAbBKZw7tNyU-oXWJa-Gj3_Ye42OELUzkqMFdv5YlTcroFASltTI"
                 alt="Perfil"
                 className="rounded-full h-10 w-10 ring-2 ring-white dark:ring-surface-dark shadow-sm object-cover"
@@ -74,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
               <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-surface-dark rounded-full"></span>
             </div>
             <div className="flex flex-col text-left overflow-hidden">
-              <p className="text-[#121716] dark:text-white text-sm font-bold truncate">Mariana G.</p>
+              <p className="text-[#121716] dark:text-white text-sm font-bold truncate">{userName}</p>
               <p className="text-[10px] text-[#678380] dark:text-gray-400 uppercase font-bold tracking-tighter">Usuario</p>
             </div>
           </button>

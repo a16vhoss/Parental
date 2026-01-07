@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { FamilyMember } from '../types';
 
 interface DashboardProps {
+  userName: string;
   // Changed Baby[] to FamilyMember[]
   childrenList: FamilyMember[];
   onViewProfile: (id: string) => void;
@@ -64,7 +65,7 @@ const ALL_GUIDES: GuideArticle[] = [
   }
 ];
 
-const Dashboard: React.FC<DashboardProps> = ({ childrenList, onViewProfile, onAddChild }) => {
+const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewProfile, onAddChild }) => {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [readArticles, setReadArticles] = useState<Set<string>>(new Set());
 
@@ -85,7 +86,7 @@ const Dashboard: React.FC<DashboardProps> = ({ childrenList, onViewProfile, onAd
   // Filtrar guías relevantes basadas en la lista de hijos
   const relevantGuides = useMemo(() => {
     const childrenMonths = childrenList.map(c => parseAgeToMonths(c.age));
-    
+
     // Si no hay hijos, mostrar todas las guías destacadas
     if (childrenMonths.length === 0) return ALL_GUIDES.slice(0, 2);
 
@@ -123,7 +124,7 @@ const Dashboard: React.FC<DashboardProps> = ({ childrenList, onViewProfile, onAd
               {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
             </p>
             <h1 className="text-[#121716] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
-              Buenos días, <span className="text-primary">Mariana</span>
+              Buenos días, <span className="text-primary">{userName}</span>
             </h1>
             <p className="text-[#678380] dark:text-gray-300 text-base font-normal">Aquí tienes el resumen familiar de hoy.</p>
           </div>
@@ -141,7 +142,7 @@ const Dashboard: React.FC<DashboardProps> = ({ childrenList, onViewProfile, onAd
         <section>
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-[#121716] dark:text-white text-lg font-bold">Tus Hijos</h2>
-            <button 
+            <button
               onClick={onAddChild}
               className="text-primary text-sm font-bold hover:underline flex items-center gap-1"
             >
@@ -151,7 +152,7 @@ const Dashboard: React.FC<DashboardProps> = ({ childrenList, onViewProfile, onAd
           </div>
           <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
             {childrenList.map(child => (
-              <div 
+              <div
                 key={child.id}
                 onClick={() => onViewProfile(child.id)}
                 className="snap-start min-w-[280px] flex-1 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-2xl p-5 flex items-center gap-5 relative overflow-hidden group hover:shadow-md transition-all cursor-pointer"
@@ -166,7 +167,7 @@ const Dashboard: React.FC<DashboardProps> = ({ childrenList, onViewProfile, onAd
                 </div>
               </div>
             ))}
-            <div 
+            <div
               onClick={onAddChild}
               className="snap-start min-w-[200px] bg-dashed border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-5 flex flex-col items-center justify-center gap-2 group hover:border-primary/50 transition-all cursor-pointer opacity-70 hover:opacity-100"
             >
@@ -181,19 +182,19 @@ const Dashboard: React.FC<DashboardProps> = ({ childrenList, onViewProfile, onAd
             <h2 className="text-[#121716] dark:text-white text-2xl font-bold tracking-tight">Personalizado para ti</h2>
             <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Guía del Día</p>
           </div>
-          
+
           <div className="flex flex-col gap-4">
             {relevantGuides.map((guide) => {
               const isFav = favorites.has(guide.id);
               const isRead = readArticles.has(guide.id);
 
               return (
-                <article 
-                  key={guide.id} 
+                <article
+                  key={guide.id}
                   className={`bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-700/50 flex flex-col md:flex-row gap-5 items-start relative ${isRead ? 'opacity-75 grayscale-[0.3]' : ''}`}
                 >
                   <div className="w-full md:w-1/4 aspect-video md:aspect-square rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden relative group shrink-0">
-                    <img 
+                    <img
                       src={guide.image}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       alt={guide.title}
@@ -207,25 +208,25 @@ const Dashboard: React.FC<DashboardProps> = ({ childrenList, onViewProfile, onAd
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex-1 flex flex-col gap-2">
                     <div className="flex justify-between items-start">
                       <h3 className={`text-xl font-bold text-[#121716] dark:text-white leading-snug ${isRead ? 'line-through decoration-primary/50 text-gray-400' : ''}`}>
                         {guide.title}
                       </h3>
                     </div>
-                    
+
                     <p className="text-[#678380] dark:text-gray-400 text-sm leading-relaxed line-clamp-2">
                       {guide.description}
                     </p>
-                    
+
                     <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-50 dark:border-gray-700/50">
                       <span className="text-[10px] text-gray-500 font-bold flex items-center gap-1 uppercase tracking-widest">
                         <span className="material-symbols-outlined text-sm">schedule</span> {guide.readTime} lectura
                       </span>
-                      
+
                       <div className="flex gap-1">
-                        <button 
+                        <button
                           onClick={(e) => toggleRead(guide.id, e)}
                           title={isRead ? "Marcar como no leído" : "Marcar como leído"}
                           className={`p-2 rounded-lg transition-colors flex items-center justify-center ${isRead ? 'text-primary bg-primary/10' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
@@ -234,7 +235,7 @@ const Dashboard: React.FC<DashboardProps> = ({ childrenList, onViewProfile, onAd
                             {isRead ? 'visibility' : 'visibility_off'}
                           </span>
                         </button>
-                        <button 
+                        <button
                           onClick={(e) => toggleFavorite(guide.id, e)}
                           title={isFav ? "Quitar de favoritos" : "Añadir a favoritos"}
                           className={`p-2 rounded-lg transition-colors flex items-center justify-center ${isFav ? 'text-rose-500 bg-rose-50 dark:bg-rose-500/10' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
