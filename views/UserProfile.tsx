@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface UserProfileProps {
   userName: string;
@@ -19,6 +20,49 @@ const UserProfile: React.FC<UserProfileProps> = ({
   // Format joined date (e.g., "Octubre 2023")
   const formattedJoinDate = joinedAt ? new Date(joinedAt).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'recientemente';
   const displayJoinDate = formattedJoinDate.charAt(0).toUpperCase() + formattedJoinDate.slice(1);
+
+  // State for form fields
+  const [fullName, setFullName] = useState(userName);
+  const [phone, setPhone] = useState('');
+  const [location, setLocation] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  // Initialize state when props change
+  useEffect(() => {
+    setFullName(userName);
+    // Note: Phone and Location are not currently passed in props but we can fetch them or pass them if stored in metadata
+    // For now, we'll just handle local state updates
+  }, [userName]);
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: fullName,
+          phone: phone,
+          location: location
+        }
+      });
+
+      if (error) throw error;
+      setMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setMessage(null), 3000);
+
+      // Reload page to reflect changes if necessary, or rely on App.tsx session listener
+      window.location.reload();
+
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Default fallback avatar if none provided
   const avatarSrc = userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
@@ -80,32 +124,68 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
         <div className="md:col-span-2 space-y-6">
           <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm">
+            {message && (
+              <div className={`mb-4 p-3 rounded-lg text-sm font-bold flex items-center gap-2 ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                <span className="material-symbols-outlined text-lg">
+                  {message.type === 'success' ? 'check_circle' : 'error'}
+                </span>
+                {message.text}
+              </div>
+            )}
+
             <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">person</span> Información Personal
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">Nombre Completo</label>
-                <input type="text" defaultValue={userName} className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">Correo Electrónico</label>
-                <input type="email" defaultValue={userEmail} className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
+                <input
+                  type="email"
+                  value={userEmail}
+                  disabled
+                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary opacity-60 cursor-not-allowed"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">Teléfono</label>
-                <input type="tel" placeholder="+52 (000) 000-0000" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary" />
+                <input
+                  type="tel"
+                  placeholder="+52 (000) 000-0000"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">Ubicación Actual</label>
                 <div className="relative">
-                  <input type="text" placeholder="Ej. Ciudad de México" className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-primary" />
+                  <input
+                    type="text"
+                    placeholder="Ej. Ciudad de México"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 pl-10 text-sm font-medium focus:ring-2 focus:ring-primary"
+                  />
                   <span className="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-xl">location_on</span>
                 </div>
               </div>
             </div>
-            <button className="mt-8 bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20">
-              Guardar Cambios
+            <button
+              onClick={handleSave}
+              disabled={isLoading}
+              className="mt-8 bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Guardando...' : 'Guardar Cambios'}
             </button>
           </section>
 
