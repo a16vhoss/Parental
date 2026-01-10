@@ -54,7 +54,7 @@ const Blog: React.FC = () => {
             if (!apiKey) throw new Error('Falta la API Key de Gemini (VITE_GEMINI_API_KEY)');
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
             const prompt = `Escribe un artículo de blog corto (300-400 palabras) sobre un consejo valioso de crianza, salud infantil o desarrollo para padres.
       
