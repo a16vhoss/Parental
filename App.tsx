@@ -228,22 +228,7 @@ const AppContent: React.FC = () => {
     </div>
   );
 
-  {
-    showAddChild && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
-        <div className="w-full max-w-2xl animate-in zoom-in-95 duration-200">
-          <AddChild
-            memberToEdit={editingMember}
-            onSave={editingMember ? handleUpdateMember : handleAddMember}
-            onCancel={() => {
-              setShowAddChild(false);
-              setEditingMember(undefined);
-            }}
-          />
-        </div>
-      </div>
-    )
-  };
+
 
   // Child profile wrapper to get ID from URL
   const ChildProfileWrapper = () => {
@@ -369,6 +354,20 @@ const AppContent: React.FC = () => {
           </Routes>
         )}
       </div>
+      {showAddChild && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-2xl animate-in zoom-in-95 duration-200">
+            <AddChild
+              memberToEdit={editingMember}
+              onSave={editingMember ? handleUpdateMember : handleAddMember}
+              onCancel={() => {
+                setShowAddChild(false);
+                setEditingMember(undefined);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
