@@ -8,6 +8,7 @@ import ChildProfile from './views/ChildProfile';
 import UserProfile from './views/UserProfile';
 import Settings from './views/Settings';
 import Directory from './views/Directory';
+import Blog from './views/Blog';
 import EmergencyAlert from './views/EmergencyAlert';
 import AddChild from './views/AddChild';
 import FamilyView from './views/FamilyView';
