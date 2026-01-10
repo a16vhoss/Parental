@@ -11,7 +11,6 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ userName, activeView, onNavigate }) => {
   const navItems = [
     { view: AppView.DASHBOARD, label: 'Panel de Control', icon: 'grid_view' },
-    { view: AppView.CHAT, label: 'Asistente IA', icon: 'smart_toy' },
     { view: AppView.DIRECTORY, label: 'Directorio', icon: 'map' },
     { view: AppView.PROFILE, label: 'Mi Familia', icon: 'groups' },
   ];

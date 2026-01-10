@@ -9,7 +9,7 @@ import Settings from './views/Settings';
 import Directory from './views/Directory';
 import EmergencyAlert from './views/EmergencyAlert';
 import AddChild from './views/AddChild';
-import ChatBot from './views/ChatBot';
+import AddChild from './views/AddChild';
 import FamilyView from './views/FamilyView';
 import Login from './views/Login';
 import Sidebar from './components/Sidebar';
@@ -230,8 +230,8 @@ const App: React.FC = () => {
         return <Directory />;
       case AppView.EMERGENCY:
         return <EmergencyAlert onCancel={() => setCurrentView(AppView.DASHBOARD)} />;
-      case AppView.CHAT:
-        return <ChatBot childrenList={family} />;
+      case AppView.EMERGENCY:
+        return <EmergencyAlert onCancel={() => setCurrentView(AppView.DASHBOARD)} />;
       default:
         return <LandingPage onEnterApp={handleEnterApp} />;
     }
