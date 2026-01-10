@@ -63,27 +63,51 @@ const UserProfile: React.FC<UserProfileProps> = ({
       }
 
       const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      // Use userId folder if available, otherwise fallback to root (which might fail RLS)
-      const filePath = userId ? `${userId}/${fileName}` : fileName;
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      const fileName = `avatar_${Date.now()}.${fileExt}`;
+
+      // Validate file type
+      if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt || '')) {
+        setMessage({ type: 'error', text: 'Formato no soportado. Usa JPG, PNG o GIF.' });
+        return;
+      }
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setMessage({ type: 'error', text: 'La imagen es muy grande. Máximo 2MB.' });
+        return;
+      }
+
+      if (!userId) {
+        setMessage({ type: 'error', text: 'Error: No se encontró tu ID de usuario.' });
+        return;
+      }
+
+      const filePath = `${userId}/${fileName}`;
 
       setIsUploading(true);
       setMessage(null);
 
+      console.log('[Avatar Upload] Starting upload to path:', filePath);
+
       // 1. Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
+        console.error('[Avatar Upload] Upload failed:', uploadError);
         throw uploadError;
       }
 
-      // 2. Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      console.log('[Avatar Upload] Upload successful');
+
+      // 2. Construct Public URL manually to avoid any URL corruption
+      // The format is: https://<project>.supabase.co/storage/v1/object/public/<bucket>/<path>
+      const supabaseProjectUrl = 'https://ongqtqeeecntxsrllmol.supabase.co';
+      const publicUrl = `${supabaseProjectUrl}/storage/v1/object/public/avatars/${filePath}`;
+
+      console.log('[Avatar Upload] Generated public URL:', publicUrl);
 
       // 3. Update User Metadata
       const { error: updateUserError } = await supabase.auth.updateUser({
@@ -91,18 +115,20 @@ const UserProfile: React.FC<UserProfileProps> = ({
       });
 
       if (updateUserError) {
+        console.error('[Avatar Upload] Metadata update failed:', updateUserError);
         throw updateUserError;
       }
 
-      setMessage({ type: 'success', text: 'Foto de perfil actualizada' });
+      console.log('[Avatar Upload] Metadata updated successfully');
+      setMessage({ type: 'success', text: '¡Foto de perfil actualizada!' });
 
       if (onProfileUpdate) {
         onProfileUpdate();
       }
 
     } catch (error: any) {
-      console.error('Error uploading avatar:', error);
-      setMessage({ type: 'error', text: 'Error al subir imagen: ' + error.message });
+      console.error('[Avatar Upload] Error:', error);
+      setMessage({ type: 'error', text: 'Error: ' + error.message });
     } finally {
       setIsUploading(false);
     }
