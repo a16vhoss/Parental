@@ -17,7 +17,7 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
   return (
     <main className="flex-grow p-4 md:p-8 lg:px-12 max-w-[800px] mx-auto w-full">
       <div className="flex items-center gap-4 mb-8">
-        <button 
+        <button
           onClick={onBack}
           className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-[#678380] hover:text-[#121716] dark:hover:text-white transition-all shadow-sm"
         >
@@ -36,7 +36,7 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
       <div className="space-y-6">
         <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">display_settings</span> 
+            <span className="material-symbols-outlined text-primary">display_settings</span>
             {language === 'es' ? 'Apariencia' : 'Appearance'}
           </h3>
           <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-background-dark rounded-xl">
@@ -65,7 +65,7 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
 
         <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">language</span> 
+            <span className="material-symbols-outlined text-primary">language</span>
             {language === 'es' ? 'Región y Preferencias' : 'Region and Preferences'}
           </h3>
           <div className="space-y-4">
@@ -73,7 +73,7 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
               <span className="text-sm font-bold text-[#121716] dark:text-white">
                 {language === 'es' ? 'Idioma' : 'Language'}
               </span>
-              <select 
+              <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as Language)}
                 className="bg-transparent border-none text-sm font-medium focus:ring-0 text-primary cursor-pointer"
@@ -87,23 +87,21 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
                 {language === 'es' ? 'Sistema de Medida' : 'Measurement System'}
               </span>
               <div className="flex bg-gray-200 dark:bg-gray-700 p-1 rounded-lg">
-                <button 
+                <button
                   onClick={() => setMeasurementSystem('metric')}
-                  className={`px-4 py-1.5 text-xs font-bold transition-all rounded-md ${
-                    measurementSystem === 'metric' 
-                    ? 'bg-white dark:bg-surface-dark shadow-sm text-primary' 
-                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                  }`}
+                  className={`px-4 py-1.5 text-xs font-bold transition-all rounded-md ${measurementSystem === 'metric'
+                      ? 'bg-white dark:bg-surface-dark shadow-sm text-primary'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
                 >
                   {language === 'es' ? 'Métrico' : 'Metric'}
                 </button>
-                <button 
+                <button
                   onClick={() => setMeasurementSystem('imperial')}
-                  className={`px-4 py-1.5 text-xs font-bold transition-all rounded-md ${
-                    measurementSystem === 'imperial' 
-                    ? 'bg-white dark:bg-surface-dark shadow-sm text-primary' 
-                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                  }`}
+                  className={`px-4 py-1.5 text-xs font-bold transition-all rounded-md ${measurementSystem === 'imperial'
+                      ? 'bg-white dark:bg-surface-dark shadow-sm text-primary'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
                 >
                   {language === 'es' ? 'Imperial' : 'Imperial'}
                 </button>
@@ -114,23 +112,32 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
 
         <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">security</span> 
+            <span className="material-symbols-outlined text-primary">security</span>
             {language === 'es' ? 'Privacidad' : 'Privacy'}
           </h3>
           <div className="space-y-4">
-             <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-background-dark rounded-xl group">
-               <span className="text-sm font-bold text-[#121716] dark:text-white group-hover:text-primary transition-colors">
-                 {language === 'es' ? 'Verificar mi Identidad' : 'Verify my Identity'}
-               </span>
-               <span className="material-symbols-outlined text-gray-400 group-hover:translate-x-1 transition-transform">chevron_right</span>
-             </button>
-             <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-background-dark rounded-xl group text-rose-600">
-               <span className="text-sm font-bold">
-                 {language === 'es' ? 'Eliminar mi cuenta' : 'Delete my account'}
-               </span>
-               <span className="material-symbols-outlined">delete_forever</span>
-             </button>
+            <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-background-dark rounded-xl group">
+              <span className="text-sm font-bold text-[#121716] dark:text-white group-hover:text-primary transition-colors">
+                {language === 'es' ? 'Verificar mi Identidad' : 'Verify my Identity'}
+              </span>
+              <span className="material-symbols-outlined text-gray-400 group-hover:translate-x-1 transition-transform">chevron_right</span>
+            </button>
+            <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-background-dark rounded-xl group text-rose-600">
+              <span className="text-sm font-bold">
+                {language === 'es' ? 'Eliminar mi cuenta' : 'Delete my account'}
+              </span>
+              <span className="material-symbols-outlined">delete_forever</span>
+            </button>
           </div>
+        </section>
+
+        <section className="flex justify-end pt-4">
+          <button
+            onClick={() => alert(language === 'es' ? '¡Cambios guardados exitosamente!' : 'Changes saved successfully!')}
+            className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95"
+          >
+            {language === 'es' ? 'Guardar Cambios' : 'Save Changes'}
+          </button>
         </section>
       </div>
     </main>
