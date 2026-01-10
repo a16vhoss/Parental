@@ -9,7 +9,6 @@ import Settings from './views/Settings';
 import Directory from './views/Directory';
 import EmergencyAlert from './views/EmergencyAlert';
 import AddChild from './views/AddChild';
-import AddChild from './views/AddChild';
 import FamilyView from './views/FamilyView';
 import Login from './views/Login';
 import Sidebar from './components/Sidebar';
@@ -228,8 +227,6 @@ const App: React.FC = () => {
         );
       case AppView.DIRECTORY:
         return <Directory />;
-      case AppView.EMERGENCY:
-        return <EmergencyAlert onCancel={() => setCurrentView(AppView.DASHBOARD)} />;
       case AppView.EMERGENCY:
         return <EmergencyAlert onCancel={() => setCurrentView(AppView.DASHBOARD)} />;
       default:
