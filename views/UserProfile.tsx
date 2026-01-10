@@ -185,7 +185,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
               />
             </div>
             <h2 className="text-xl font-bold text-[#121716] dark:text-white">{userName}</h2>
-            <p className="text-xs text-gray-400 break-all px-4">{avatarSrc} | {userId}</p>
             <p className="text-sm text-[#678380] dark:text-gray-400">Miembro desde {displayJoinDate}</p>
             <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">
               <span className="material-symbols-outlined text-sm">verified_user</span> Usuario Verificado
