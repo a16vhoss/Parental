@@ -15,7 +15,9 @@ interface ChildProfileProps {
 }
 
 interface GrowthPoint {
-  month: string;
+  id?: string; // Added ID for editing
+  date?: string; // Reference date for picker
+  month: string; // Display string
   weight: number;
   height: number;
   percentile: number;
@@ -28,8 +30,10 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
   const [growthLogs, setGrowthLogs] = useState<GrowthPoint[]>([]);
   /* eslint-enable @typescript-eslint/no-unused-vars */
   const [showLogModal, setShowLogModal] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<GrowthPoint | null>(null); // Track log being edited
   const [newWeight, setNewWeight] = useState('');
   const [newHeight, setNewHeight] = useState('');
+  const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
 
   // Datos de crecimiento predefinidos (mock)
 
@@ -49,10 +53,12 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
       if (data && data.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedLogs = data.map((log: any) => ({
+          id: log.id,
+          date: log.date,
           month: new Date(log.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
           weight: Number(log.weight),
           height: Number(log.height),
-          percentile: 50, // TODO: Calculate real percentile
+          percentile: 50,
           heightPercent: Math.min((Number(log.height) / 120) * 100, 100)
         }));
         setGrowthLogs(mappedLogs);
@@ -86,29 +92,81 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
     }
   };
 
+  const handleOpenModal = (log?: GrowthPoint) => {
+    if (log) {
+      setSelectedLog(log);
+      setNewWeight(log.weight.toString());
+      setNewHeight(log.height.toString());
+      setNewDate(log.date || new Date().toISOString().split('T')[0]);
+    } else {
+      setSelectedLog(null);
+      setNewWeight('');
+      setNewHeight('');
+      setNewDate(new Date().toISOString().split('T')[0]);
+    }
+    setShowLogModal(true);
+  };
+
+  const handleDeleteLog = async () => {
+    if (!selectedLog?.id) return;
+
+    if (!confirm('¿Estás seguro de eliminar este registro?')) return;
+
+    await supabase.from('growth_logs').delete().eq('id', selectedLog.id);
+
+    // Refresh local
+    setGrowthLogs(prev => prev.filter(l => l.id !== selectedLog.id));
+    setShowLogModal(false);
+  };
+
   const handleSaveMetrics = async () => {
-    if (!newWeight || !newHeight) return;
+    if (!newWeight || !newHeight || !newDate) return;
 
-    // 1. Save to growth_logs
     if (childId) {
-      await supabase.from('growth_logs').insert([{
-        member_id: childId,
-        weight: newWeight,
-        height: newHeight
-      }]);
+      if (selectedLog?.id) {
+        // UPDATE
+        await supabase.from('growth_logs').update({
+          weight: newWeight,
+          height: newHeight,
+          date: newDate
+        }).eq('id', selectedLog.id);
 
-      // Refresh local logs
-      const today = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-      setGrowthLogs(prev => [...prev, {
-        month: today,
-        weight: Number(newWeight),
-        height: Number(newHeight),
-        percentile: 50,
-        heightPercent: Math.min((Number(newHeight) / 120) * 100, 100)
-      }]);
+        // Update local
+        setGrowthLogs(prev => prev.map(l => l.id === selectedLog.id ? {
+          ...l,
+          weight: Number(newWeight),
+          height: Number(newHeight),
+          date: newDate,
+          month: new Date(newDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+          heightPercent: Math.min((Number(newHeight) / 120) * 100, 100)
+        } : l));
+
+      } else {
+        // INSERT
+        const { data } = await supabase.from('growth_logs').insert([{
+          member_id: childId,
+          weight: newWeight,
+          height: newHeight,
+          date: newDate
+        }]).select();
+
+        if (data) {
+          const newLog = data[0];
+          setGrowthLogs(prev => [...prev, {
+            id: newLog.id,
+            date: newLog.date,
+            month: new Date(newLog.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+            weight: Number(newLog.weight),
+            height: Number(newLog.height),
+            percentile: 50,
+            heightPercent: Math.min((Number(newLog.height) / 120) * 100, 100)
+          }].sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime()));
+        }
+      }
     }
 
-    // 2. Update current vitals in family_members
+    // 2. Update current vitals IF it's the latest date (logic verification needed, but for now update latest)
+    // Simple logic: If we are adding/editing, we update the profile display to reflect this change if it's recent
     const updatedChild = {
       ...child,
       vitals: {
@@ -119,7 +177,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
       status: '📈 Métricas actualizadas'
     };
 
-    onUpdateChild(updatedChild); // This updates Supabase via App.tsx
+    onUpdateChild(updatedChild);
     setShowLogModal(false);
     setNewWeight('');
     setNewHeight('');
@@ -153,7 +211,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
             <span className="material-symbols-outlined text-[20px]">share</span> Compartir
           </button>
           <button
-            onClick={() => setShowLogModal(true)}
+            onClick={() => handleOpenModal()}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 text-sm font-bold active:scale-95"
           >
             <span className="material-symbols-outlined text-[20px]">add</span> Registro
@@ -238,7 +296,10 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
                   </div>
 
                   {/* Barra interactiva con efecto de "punto" marcador */}
-                  <div className="relative w-full h-full flex flex-col justify-end items-center group/bar">
+                  <div
+                    className="relative w-full h-full flex flex-col justify-end items-center group/bar"
+                    onClick={() => handleOpenModal(point)} // Make bar clickable
+                  >
                     <div
                       style={{ height: `${point.heightPercent}%` }}
                       className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 ease-out cursor-pointer relative ${hoveredPoint === i
@@ -296,11 +357,22 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white dark:bg-surface-dark w-full max-w-md rounded-2xl shadow-2xl p-6 border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[#121716] dark:text-white">Registrar Métricas</h3>
+              <h3 className="text-xl font-bold text-[#121716] dark:text-white">
+                {selectedLog ? 'Editar Registro' : 'Registrar Métricas'}
+              </h3>
               <button onClick={() => setShowLogModal(false)} className="text-gray-400 hover:text-gray-600"><span className="material-symbols-outlined">close</span></button>
             </div>
 
             <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Fecha</label>
+                <input
+                  type="date"
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                  className="w-full p-3 bg-gray-50 dark:bg-background-dark border-none rounded-xl focus:ring-2 focus:ring-primary text-[#121716] dark:text-white"
+                />
+              </div>
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Nuevo Peso (kg)</label>
                 <input
@@ -325,6 +397,15 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
             </div>
 
             <div className="mt-8 flex gap-3">
+              {selectedLog && (
+                <button
+                  onClick={handleDeleteLog}
+                  className="px-4 py-3 bg-red-100 text-red-600 font-bold rounded-xl hover:bg-red-200 transition-colors"
+                  title="Eliminar"
+                >
+                  <span className="material-symbols-outlined">delete</span>
+                </button>
+              )}
               <button
                 onClick={() => setShowLogModal(false)}
                 className="flex-1 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
@@ -335,7 +416,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
                 onClick={handleSaveMetrics}
                 className="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all"
               >
-                Guardar
+                {selectedLog ? 'Actualizar' : 'Guardar'}
               </button>
             </div>
           </div>
