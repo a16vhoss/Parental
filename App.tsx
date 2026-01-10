@@ -230,6 +230,18 @@ const AppContent: React.FC = () => {
 
 
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showAddChild) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showAddChild]);
+
   // Child profile wrapper to get ID from URL
   const ChildProfileWrapper = () => {
     const { id } = useParams();
@@ -355,16 +367,18 @@ const AppContent: React.FC = () => {
         )}
       </div>
       {showAddChild && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-2xl animate-in zoom-in-95 duration-200">
-            <AddChild
-              memberToEdit={editingMember}
-              onSave={editingMember ? handleUpdateMember : handleAddMember}
-              onCancel={() => {
-                setShowAddChild(false);
-                setEditingMember(undefined);
-              }}
-            />
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <div className="w-full max-w-2xl transform overflow-hidden rounded-2xl text-left align-middle shadow-xl transition-all animate-in zoom-in-95 duration-200">
+              <AddChild
+                memberToEdit={editingMember}
+                onSave={editingMember ? handleUpdateMember : handleAddMember}
+                onCancel={() => {
+                  setShowAddChild(false);
+                  setEditingMember(undefined);
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
