@@ -1,10 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-
-interface PlaceResult {
-  name: string;
-  category: string;
-}
+import MapComponent, { Place } from '../components/MapComponent';
 
 const Directory: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,20 +8,58 @@ const Directory: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [selectedPlaceName, setSelectedPlaceName] = useState<string | null>(null);
 
-  // Predefined verified locations (static data)
-  const verifiedPlaces: PlaceResult[] = [
-    { name: 'Hospital Infantil de México', category: 'Hospitales' },
-    { name: 'Hospital Pediátrico de Coyoacán', category: 'Hospitales' },
-    { name: 'Farmacia San Pablo', category: 'Farmacias' },
-    { name: 'Farmacia Guadalajara', category: 'Farmacias' },
-    { name: 'Pediatra Dr. López', category: 'Pediatras' },
-    { name: 'Clínica Pediátrica CDMX', category: 'Pediatras' },
-    { name: 'Cruz Roja Mexicana', category: 'Urgencias' },
-    { name: 'IMSS Urgencias', category: 'Urgencias' },
+  // Predefined verified locations (Simulated data)
+  // In a real app, these would come from the database or Google Places Search
+  const verifiedPlaces: Place[] = [
+    {
+      name: 'Hospital Infantil de México',
+      category: 'Hospitales',
+      position: { lat: 19.4124, lng: -99.1523 },
+      address: 'Dr. Márquez 162, Doctores, CDMX'
+    },
+    {
+      name: 'Hospital Pediátrico de Coyoacán',
+      category: 'Hospitales',
+      position: { lat: 19.3248, lng: -99.1558 },
+      address: 'Moctezuma 18, Del Carmen, Coyoacán, CDMX'
+    },
+    {
+      name: 'Farmacia San Pablo - Roma',
+      category: 'Farmacias',
+      position: { lat: 19.4192, lng: -99.1627 },
+      address: 'Av. Oaxaca 176, Coyoacán, CDMX'
+    },
+    {
+      name: 'Farmacia Guadalajara - Del Valle',
+      category: 'Farmacias',
+      position: { lat: 19.3879, lng: -99.1685 },
+      address: 'Av. Coyoacán 836, Col del Valle Centro, CDMX'
+    },
+    {
+      name: 'Pediatra Dr. López',
+      category: 'Pediatras',
+      position: { lat: 19.4312, lng: -99.1764 },
+      address: 'Av. Horacio 1502, Polanco, CDMX'
+    },
+    {
+      name: 'Cruz Roja Mexicana - Polanco',
+      category: 'Urgencias',
+      position: { lat: 19.4397, lng: -99.2065 },
+      address: 'Juan Luis Vives 200, Los Morales, CDMX'
+    },
+    {
+      name: 'IMSS Hospital General de Zona 1A "Venados"',
+      category: 'Urgencias',
+      position: { lat: 19.3697, lng: -99.1568 },
+      address: 'Municipio Libre 270, Portales Nte, CDMX'
+    },
   ];
 
   const categories = ['Hospitales', 'Farmacias', 'Pediatras', 'Urgencias'];
+  // Use env var or fallback to placeholder (which will fail if not replaced)
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
   useEffect(() => {
     handleGetLocation();
@@ -38,7 +72,7 @@ const Directory: React.FC = () => {
     if (!navigator.geolocation) {
       setLocationError('Tu navegador no soporta geolocalización');
       setIsLocating(false);
-      // Fallback to Mexico City
+      // Fallback to Mexico City center
       setUserLocation({ lat: 19.4326, lng: -99.1332 });
       return;
     }
@@ -69,33 +103,14 @@ const Directory: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // The map will update automatically via getMapUrl()
+    // In a real app we would use Places Service here to search dynamic results
+    // For now we filter local verified places
   };
 
   const handleCategoryClick = (category: string) => {
     setActiveCategory(category);
     setSearchQuery(category);
-  };
-
-  // Build Google Maps embed URL
-  const getMapUrl = () => {
-    const baseUrl = 'https://maps.google.com/maps';
-    const params = new URLSearchParams();
-
-    const query = searchQuery || activeCategory || 'Hospitales';
-
-    if (userLocation) {
-      // Search near user's location
-      params.set('q', `${query} cerca de ${userLocation.lat},${userLocation.lng}`);
-    } else {
-      // Generic search
-      params.set('q', `${query} México`);
-    }
-
-    params.set('z', '14');
-    params.set('output', 'embed');
-
-    return `${baseUrl}?${params.toString()}`;
+    setSelectedPlaceName(null);
   };
 
   const filteredPlaces = verifiedPlaces.filter(
@@ -143,7 +158,7 @@ const Directory: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3.5 bg-gray-50 dark:bg-background-dark border-none rounded-xl text-sm focus:ring-2 focus:ring-primary transition-all shadow-inner"
-              placeholder="Buscar hospitales, farmacias..."
+              placeholder="Buscar lugares verificados..."
               type="text"
             />
           </form>
@@ -166,14 +181,14 @@ const Directory: React.FC = () => {
 
         <div className="flex-1 overflow-y-auto p-6 space-y-3">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-            Lugares Verificados
+            Lugares Verificados ({filteredPlaces.length})
           </p>
 
           {filteredPlaces.map((place, idx) => (
             <article
               key={idx}
-              onClick={() => setSearchQuery(place.name)}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer group ${searchQuery === place.name
+              onClick={() => setSelectedPlaceName(place.name)}
+              className={`p-4 rounded-2xl border transition-all cursor-pointer group ${selectedPlaceName === place.name
                   ? 'bg-primary/5 border-primary ring-1 ring-primary/20'
                   : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-700 hover:border-primary/40'
                 }`}
@@ -194,31 +209,44 @@ const Directory: React.FC = () => {
               </div>
             </article>
           ))}
+
+          {filteredPlaces.length === 0 && (
+            <div className="text-center py-10 opacity-50">
+              <p className="text-sm">No se encontraron lugares verificados en esta categoría.</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Right Column: Map */}
+      {/* Right Column: Interactive Map */}
       <div id="map-container" className="flex-1 h-full relative bg-gray-100">
-        <iframe
-          key={getMapUrl()}
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          loading="lazy"
-          allowFullScreen
-          src={getMapUrl()}
-          className="w-full h-full grayscale-[0.1] dark:invert-[0.9] dark:hue-rotate-180"
-        />
+        {!apiKey ? (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-background-dark p-6 text-center">
+            <span className="material-symbols-outlined text-6xl mb-4 text-amber-500">warning</span>
+            <h2 className="text-xl font-bold mb-2">Falta API Key de Google Maps</h2>
+            <p className="text-sm text-gray-500 max-w-md">
+              Para ver el mapa interactivo, necesitas configurar la variable <code>VITE_GOOGLE_MAPS_API_KEY</code> en tu archivo .env o en Vercel.
+            </p>
+          </div>
+        ) : (
+          <MapComponent
+            apiKey={apiKey}
+            userLocation={userLocation}
+            places={filteredPlaces}
+            selectedPlaceName={selectedPlaceName}
+            onPlaceSelect={setSelectedPlaceName}
+          />
+        )}
 
         {/* Header overlay */}
-        <div className="absolute top-6 left-6 right-6 lg:left-auto lg:w-72 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-white/20 z-30">
+        <div className="absolute top-6 left-6 right-6 lg:left-auto lg:w-72 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-white/20 z-30 pointer-events-none">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
               <span className="material-symbols-outlined icon-filled">health_and_safety</span>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none mb-1">Red Parental</p>
-              <p className="text-sm font-bold text-primary">Servicios Verificados</p>
+              <p className="text-sm font-bold text-primary">Mapa Interactivo</p>
             </div>
           </div>
         </div>
@@ -227,7 +255,7 @@ const Directory: React.FC = () => {
         <button
           onClick={handleGetLocation}
           disabled={isLocating}
-          className="absolute bottom-6 right-6 size-14 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30 disabled:opacity-50"
+          className="absolute bottom-24 right-6 size-14 bg-white dark:bg-surface-dark text-gray-700 dark:text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30 disabled:opacity-50"
           title="Centrar en mi ubicación"
         >
           <span className={`material-symbols-outlined ${isLocating ? 'animate-spin' : ''}`}>
