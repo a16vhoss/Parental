@@ -14,6 +14,7 @@ import AddChild from './views/AddChild';
 import FamilyView from './views/FamilyView';
 import Login from './views/Login';
 import Sidebar from './components/Sidebar';
+import MobileNav from './components/MobileNav';
 import { supabase } from './lib/supabase';
 
 // Wrapper component that provides navigation context
@@ -226,6 +227,9 @@ const AppContent: React.FC = () => {
         />
       )}
       <div className={`flex-1 w-full ${showSidebar ? 'lg:pl-0' : ''}`}>
+        {/* Mobile Navigation Bar */}
+        {showSidebar && <MobileNav />}
+
         {isLoading && showSidebar ? (
           <LoadingSpinner />
         ) : (
