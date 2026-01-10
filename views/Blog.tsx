@@ -54,17 +54,41 @@ const Blog: React.FC = () => {
             if (!apiKey) throw new Error('Falta la API Key de Gemini (VITE_GEMINI_API_KEY)');
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-            const prompt = `Escribe un artículo de blog corto (300-400 palabras) sobre un consejo valioso de crianza, salud infantil o desarrollo para padres.
-      
-      Requisitos:
-      - Título: Atractivo y claro.
-      - Contenido: Estilo empático, profesional y basado en evidencia. Usa Markdown (negritas, listas).
-      - FORMATO DE RESPUESTA: Solo JSON válido.
-      Schema: { "title": "Titulo del post", "content": "Contenido en markdown" }`;
+            // List of models to try in order of preference
+            const modelNames = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro", "gemini-1.0-pro"];
+            let model = null;
+            let result = null;
+            let lastError = null;
 
-            const result = await model.generateContent(prompt);
+            for (const modelName of modelNames) {
+                try {
+                    console.log(`Intentando generar con modelo: ${modelName}...`);
+                    const currentModel = genAI.getGenerativeModel({ model: modelName });
+
+                    const prompt = `Escribe un artículo de blog corto (300-400 palabras) sobre un consejo valioso de crianza, salud infantil o desarrollo para padres.
+          
+          Requisitos:
+          - Título: Atractivo y claro.
+          - Contenido: Estilo empático, profesional y basado en evidencia. Usa Markdown (negritas, listas).
+          - FORMATO DE RESPUESTA: Solo JSON válido.
+          Schema: { "title": "Titulo del post", "content": "Contenido en markdown" }`;
+
+                    result = await currentModel.generateContent(prompt);
+                    // If successful, break the loop
+                    console.log(`¡Éxito con modelo ${modelName}!`);
+                    break;
+                } catch (e: any) {
+                    console.warn(`Falló modelo ${modelName}:`, e.message);
+                    lastError = e;
+                    // Continue to next model
+                }
+            }
+
+            if (!result) {
+                throw new Error(`No se pudo generar con ningún modelo. Último error: ${lastError?.message}`);
+            }
+
             const response = await result.response;
             let text = response.text();
 
