@@ -40,12 +40,70 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   // Initialize state when props change
   useEffect(() => {
     setFullName(userName);
     if (userPhone) setPhone(userPhone);
     if (userLocation) setLocation(userLocation);
   }, [userName, userPhone, userLocation]);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      setIsUploading(true);
+      setMessage(null);
+
+      // 1. Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // 2. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // 3. Update User Metadata
+      const { error: updateUserError } = await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl }
+      });
+
+      if (updateUserError) {
+        throw updateUserError;
+      }
+
+      setMessage({ type: 'success', text: 'Foto de perfil actualizada' });
+
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      setMessage({ type: 'error', text: 'Error al subir imagen: ' + error.message });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -65,10 +123,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       // Clear success message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
-
-      // Notify parent/refresh session manually if needed, or rely on automatic session update
-      // triggering a re-render in App.tsx via useUser hook or similar.
-      // Since App.tsx listens to onAuthStateChange, the session update should propagate.
 
       // Notify parent to refresh session data
       if (onProfileUpdate) {
@@ -110,9 +164,22 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 alt={userName}
                 className="h-32 w-32 rounded-full border-4 border-white dark:border-surface-dark shadow-md object-cover"
               />
-              <button className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined text-sm">photo_camera</span>
+              <button
+                onClick={handleAvatarClick}
+                disabled={isUploading}
+                className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-sm ${isUploading ? 'animate-spin' : ''}`}>
+                  {isUploading ? 'refresh' : 'photo_camera'}
+                </span>
               </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleAvatarUpload}
+                className="hidden"
+                accept="image/*"
+              />
             </div>
             <h2 className="text-xl font-bold text-[#121716] dark:text-white">{userName}</h2>
             <p className="text-sm text-[#678380] dark:text-gray-400">Miembro desde {displayJoinDate}</p>
