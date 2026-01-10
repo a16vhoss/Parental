@@ -15,7 +15,21 @@ const Directory: React.FC = () => {
   // Use env var or fallback
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
-  const categories = ['Hospitales', 'Farmacias', 'Pediatras', 'Urgencias'];
+  const categories = [
+    'Hospitales',
+    'Farmacias',
+    'Pediatras',
+    'Urgencias',
+    'Ginecólogo',
+    'Psicoprofilácticos',
+    'Parto Humanizado',
+    'Células Madre',
+    'Nutrición Infantil',
+    'Lactancia',
+    'Fisioterapia Infantil',
+    'Estimulación Temprana',
+    'Psicólogo Infantil'
+  ];
 
   useEffect(() => {
     handleGetLocation();
@@ -87,10 +101,10 @@ const Directory: React.FC = () => {
               onClick={handleGetLocation}
               disabled={isLocating}
               className={`p-2 rounded-xl border flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all ${userLocation && !locationError
-                  ? 'bg-primary/10 border-primary text-primary'
-                  : locationError
-                    ? 'bg-red-50 border-red-300 text-red-500'
-                    : 'bg-gray-50 border-gray-200 text-gray-400'
+                ? 'bg-primary/10 border-primary text-primary'
+                : locationError
+                  ? 'bg-red-50 border-red-300 text-red-500'
+                  : 'bg-gray-50 border-gray-200 text-gray-400'
                 }`}
             >
               <span className={`material-symbols-outlined text-sm ${isLocating ? 'animate-spin' : ''}`}>
@@ -126,8 +140,8 @@ const Directory: React.FC = () => {
                 key={cat}
                 onClick={() => handleCategoryClick(cat)}
                 className={`px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-tighter transition-colors whitespace-nowrap ${activeCategory === cat
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-primary hover:text-primary bg-white dark:bg-surface-dark'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-primary hover:text-primary bg-white dark:bg-surface-dark'
                   }`}
               >
                 {cat}
@@ -154,8 +168,8 @@ const Directory: React.FC = () => {
               key={`${place.place_id}-${idx}`}
               onClick={() => setSelectedPlaceName(place.name)}
               className={`p-4 rounded-2xl border transition-all cursor-pointer group ${selectedPlaceName === place.name
-                  ? 'bg-primary/5 border-primary ring-1 ring-primary/20'
-                  : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-700 hover:border-primary/40'
+                ? 'bg-primary/5 border-primary ring-1 ring-primary/20'
+                : 'bg-white dark:bg-surface-dark border-gray-100 dark:border-gray-700 hover:border-primary/40'
                 }`}
             >
               <div className="flex justify-between items-start gap-3">

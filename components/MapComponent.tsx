@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
     APIProvider,
@@ -85,6 +84,42 @@ const MapOrchestrator: React.FC<{
                 keyword = 'Urgencias medicas';
                 type = 'hospital';
                 break;
+            case 'Ginecólogo':
+                keyword = 'Ginecólogo obstetricia';
+                type = 'doctor';
+                break;
+            case 'Psicoprofilácticos':
+                keyword = 'Curso psicoprofiláctico';
+                type = 'health';
+                break;
+            case 'Parto Humanizado':
+                keyword = 'Clases preparación parto';
+                type = 'health';
+                break;
+            case 'Células Madre':
+                keyword = 'Banco de células madre';
+                type = 'health';
+                break;
+            case 'Nutrición Infantil':
+                keyword = 'Nutriólogo pediatra';
+                type = 'health';
+                break;
+            case 'Lactancia':
+                keyword = 'Consultora lactancia';
+                type = 'health';
+                break;
+            case 'Fisioterapia Infantil':
+                keyword = 'Fisioterapia pediatrica';
+                type = 'physiotherapist';
+                break;
+            case 'Estimulación Temprana':
+                keyword = 'Estimulación temprana bebés';
+                type = 'school';
+                break;
+            case 'Psicólogo Infantil':
+                keyword = 'Psicólogo infantil';
+                type = 'doctor';
+                break;
         }
 
         const request: google.maps.places.PlaceSearchRequest = {
@@ -166,6 +201,15 @@ const MapComponent: React.FC<MapComponentProps> = ({
             case 'Farmacias': return '#10B981'; // Emerald-500
             case 'Pediatras': return '#3B82F6'; // Blue-500
             case 'Urgencias': return '#F59E0B'; // Amber-500
+            case 'Ginecólogo': return '#EC4899'; // Pink-500
+            case 'Psicoprofilácticos': return '#8B5CF6'; // Violet-500
+            case 'Parto Humanizado': return '#D946EF'; // Fuchsia-500
+            case 'Células Madre': return '#06B6D4'; // Cyan-500
+            case 'Nutrición Infantil': return '#84CC16'; // Lime-500
+            case 'Lactancia': return '#F472B6'; // Pink-400
+            case 'Fisioterapia Infantil': return '#14B8A6'; // Teal-500
+            case 'Estimulación Temprana': return '#F59E0B'; // Amber-500
+            case 'Psicólogo Infantil': return '#6366F1'; // Indigo-500
             default: return '#6B7280';
         }
     };
@@ -176,6 +220,15 @@ const MapComponent: React.FC<MapComponentProps> = ({
             case 'Farmacias': return 'medication';
             case 'Pediatras': return 'child_care';
             case 'Urgencias': return 'emergency';
+            case 'Ginecólogo': return 'woman';
+            case 'Psicoprofilácticos': return 'psychology';
+            case 'Parto Humanizado': return 'pregnant_woman';
+            case 'Células Madre': return 'biotech';
+            case 'Nutrición Infantil': return 'nutrition';
+            case 'Lactancia': return 'baby_changing_station';
+            case 'Fisioterapia Infantil': return 'accessibility_new';
+            case 'Estimulación Temprana': return 'toys';
+            case 'Psicólogo Infantil': return 'sentiment_very_satisfied';
             default: return 'place';
         }
     };
