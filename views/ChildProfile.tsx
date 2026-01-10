@@ -1,6 +1,8 @@
-
 import React, { useState } from 'react';
-// Changed Baby to FamilyMember to fix import error
+import { supabase } from '../lib/supabase';
+import { useEffect } from 'react';
+
+// Added FamilyMember to fix import error
 import { FamilyMember } from '../types';
 
 interface ChildProfileProps {
@@ -22,33 +24,47 @@ interface GrowthPoint {
 
 const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUpdateChild, onBack }) => {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const [growthLogs, setGrowthLogs] = useState<GrowthPoint[]>([]);
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   const [showLogModal, setShowLogModal] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [newHeight, setNewHeight] = useState('');
 
   // Datos de crecimiento predefinidos (mock)
-  const growthHistory: Record<string, GrowthPoint[]> = {
-    leo: [
-      { month: 'Mes 1', weight: 3.8, height: 52, percentile: 50, heightPercent: 40 },
-      { month: 'Mes 2', weight: 4.5, height: 56, percentile: 52, heightPercent: 50 },
-      { month: 'Mes 3', weight: 5.2, height: 60, percentile: 55, heightPercent: 62 },
-      { month: 'Mes 4', weight: 6.1, height: 64, percentile: 54, heightPercent: 70 },
-      { month: 'Mes 5', weight: 7.0, height: 68, percentile: 58, heightPercent: 80 },
-      { month: 'Hoy', weight: 8.5, height: 72, percentile: 62, heightPercent: 90 },
-    ],
-    sofia: [
-      { month: 'Mes 1', weight: 3.5, height: 50, percentile: 45, heightPercent: 40 },
-      { month: 'Mes 2', weight: 4.2, height: 54, percentile: 48, heightPercent: 50 },
-      { month: 'Mes 3', weight: 4.9, height: 58, percentile: 50, heightPercent: 62 },
-      { month: 'Mes 4', weight: 5.6, height: 62, percentile: 52, heightPercent: 70 },
-      { month: 'Mes 5', weight: 6.4, height: 66, percentile: 53, heightPercent: 80 },
-      { month: 'Hoy', weight: 14.0, height: 98, percentile: 65, heightPercent: 95 },
-    ]
-  };
+
 
   const child = childrenList.find(c => c.id === childId) || childrenList[0];
-  // Added null safety when parsing vitals which are now optional
-  const history = (childId && growthHistory[childId]) ? growthHistory[childId] : [
+
+  useEffect(() => {
+    if (!childId) return;
+
+    const fetchLogs = async () => {
+      const { data } = await supabase
+        .from('growth_logs')
+        .select('*')
+        .eq('member_id', childId)
+        .order('date', { ascending: true });
+
+      if (data && data.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mappedLogs = data.map((log: any) => ({
+          month: new Date(log.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+          weight: Number(log.weight),
+          height: Number(log.height),
+          percentile: 50, // TODO: Calculate real percentile
+          heightPercent: Math.min((Number(log.height) / 120) * 100, 100)
+        }));
+        setGrowthLogs(mappedLogs);
+      } else {
+        setGrowthLogs([]);
+      }
+    };
+
+    fetchLogs();
+  }, [childId]);
+
+  const history = growthLogs.length > 0 ? growthLogs : [
     { month: 'Hoy', weight: parseFloat(child?.vitals?.weight || '0'), height: parseFloat(child?.vitals?.height || '0'), percentile: 50, heightPercent: 70 }
   ];
 
@@ -70,9 +86,29 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
     }
   };
 
-  const handleSaveMetrics = () => {
+  const handleSaveMetrics = async () => {
     if (!newWeight || !newHeight) return;
 
+    // 1. Save to growth_logs
+    if (childId) {
+      await supabase.from('growth_logs').insert([{
+        member_id: childId,
+        weight: newWeight,
+        height: newHeight
+      }]);
+
+      // Refresh local logs
+      const today = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      setGrowthLogs(prev => [...prev, {
+        month: today,
+        weight: Number(newWeight),
+        height: Number(newHeight),
+        percentile: 50,
+        heightPercent: Math.min((Number(newHeight) / 120) * 100, 100)
+      }]);
+    }
+
+    // 2. Update current vitals in family_members
     const updatedChild = {
       ...child,
       vitals: {
@@ -83,7 +119,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
       status: '📈 Métricas actualizadas'
     };
 
-    onUpdateChild(updatedChild);
+    onUpdateChild(updatedChild); // This updates Supabase via App.tsx
     setShowLogModal(false);
     setNewWeight('');
     setNewHeight('');
@@ -206,8 +242,8 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
                     <div
                       style={{ height: `${point.heightPercent}%` }}
                       className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 ease-out cursor-pointer relative ${hoveredPoint === i
-                          ? 'bg-primary scale-x-110 -translate-y-1 shadow-[0_-10px_20px_-5px_rgba(42,157,144,0.4)]'
-                          : (i === history.length - 1 ? 'bg-primary opacity-90' : 'bg-primary/20 dark:bg-primary/10 hover:bg-primary/40')
+                        ? 'bg-primary scale-x-110 -translate-y-1 shadow-[0_-10px_20px_-5px_rgba(42,157,144,0.4)]'
+                        : (i === history.length - 1 ? 'bg-primary opacity-90' : 'bg-primary/20 dark:bg-primary/10 hover:bg-primary/40')
                         }`}
                     >
                       {/* El "Punto" del gráfico que aparece al hacer hover */}
