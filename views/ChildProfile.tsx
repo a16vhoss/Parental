@@ -237,7 +237,25 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
             </div>
           </div>
 
+          {/* MI HISTORIA SECTION */}
+          {child.vitals.birthWeight && (
+            <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-4 -mt-4"></div>
+              <h3 className="text-lg font-bold flex items-center gap-2 mb-4 text-[#121716] dark:text-white relative z-10">
+                <span className="material-symbols-outlined text-primary">auto_stories</span> Mi Historia
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed italic relative z-10">
+                "Mi nombre es <span className="font-bold text-primary">{child.name.split(' ')[0]}</span>.
+                Nací el <span className="font-bold">{child.vitals.dob ? new Date(child.vitals.dob).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '...'}</span>,
+                pesando <span className="font-bold">{child.vitals.birthWeight} kg</span> y midiendo <span className="font-bold">{child.vitals.birthHeight} cm</span>.
+                Mi tipo de sangre es <span className="font-bold">{child.vitals.bloodGroup}</span>.
+                Nací en la ciudad de <span className="font-bold">{child.vitals.birthCity || '...'}</span> del país de <span className="font-bold">{child.vitals.birthCountry || '...'}</span>."
+              </p>
+            </div>
+          )}
+
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+
             <h3 className="text-lg font-bold flex items-center gap-2 mb-6 text-[#121716] dark:text-white">
               <span className="material-symbols-outlined text-primary">ecg_heart</span> Signos Vitales
             </h3>

@@ -29,6 +29,10 @@ export interface FamilyMember {
     bloodGroup?: string;
     dob?: string;
     sex: string;
+    birthWeight?: string;
+    birthHeight?: string;
+    birthCity?: string;
+    birthCountry?: string;
   };
 }
 

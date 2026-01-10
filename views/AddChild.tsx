@@ -17,6 +17,10 @@ const AddChild: React.FC<AddChildProps> = ({ onSave, onCancel }) => {
     bloodGroup: 'O+',
     weight: '',
     height: '',
+    birthWeight: '',
+    birthHeight: '',
+    birthCity: '',
+    birthCountry: '',
     avatar: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=200&h=200&auto=format&fit=crop',
     email: ''
   });
@@ -48,7 +52,11 @@ const AddChild: React.FC<AddChildProps> = ({ onSave, onCancel }) => {
         height: formData.height ? formData.height + 'cm' : undefined,
         bloodGroup: formData.bloodGroup,
         dob: formData.dob,
-        sex: formData.sex
+        sex: formData.sex,
+        birthWeight: formData.birthWeight,
+        birthHeight: formData.birthHeight,
+        birthCity: formData.birthCity,
+        birthCountry: formData.birthCountry
       }
     };
     onSave(newMember);
