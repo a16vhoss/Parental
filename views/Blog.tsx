@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -19,6 +19,10 @@ const Blog: React.FC = () => {
     const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Lock to prevent multiple generation attempts
+    const generationLockRef = useRef(false);
+    const hasCheckedTodayRef = useRef(false);
+
     useEffect(() => {
         fetchPosts();
     }, []);
@@ -37,25 +41,29 @@ const Blog: React.FC = () => {
             setPosts(postsData);
 
             // AUTOMATION: Check if we need to generate a post for today
-            // Only run this check if we are not already generating
-            if (postsData.length > 0) {
-                const latestPostDate = new Date(postsData[0].created_at).toDateString();
-                const today = new Date().toDateString();
+            // Only run this check ONCE per component mount
+            if (!hasCheckedTodayRef.current) {
+                hasCheckedTodayRef.current = true;
 
-                if (latestPostDate !== today) {
-                    console.log("No blog post for today. Auto-generating...");
+                const today = new Date().toDateString();
+                let needsGeneration = false;
+
+                if (postsData.length > 0) {
+                    const latestPostDate = new Date(postsData[0].created_at).toDateString();
+                    needsGeneration = latestPostDate !== today;
+                } else {
+                    needsGeneration = true; // No posts at all
+                }
+
+                if (needsGeneration) {
+                    console.log("No blog post for today. Triggering generation...");
                     handleGenerateDailyPost();
                 }
-            } else {
-                // No posts at all, generate the first one
-                console.log("No posts found. Auto-generating first post...");
-                handleGenerateDailyPost();
             }
 
         } catch (err: any) {
             console.error('Error fetching posts:', err);
-            // Don't show error immediately as table might not exist yet
-            if (err.code === '42P01') { // undefined_table
+            if (err.code === '42P01') {
                 setError('La tabla de blog no existe. Por favor ejecuta el script SQL.');
             }
         } finally {
@@ -64,17 +72,39 @@ const Blog: React.FC = () => {
     };
 
     const handleGenerateDailyPost = async () => {
+        // Prevent multiple simultaneous generation attempts
+        if (generationLockRef.current || isGenerating) {
+            console.log("Generation already in progress. Skipping.");
+            return;
+        }
+
+        generationLockRef.current = true;
         setIsGenerating(true);
         setError(null);
 
         try {
+            // DOUBLE CHECK: Before generating, verify no post exists for today
+            const today = new Date().toDateString();
+            const { data: recentPosts } = await supabase
+                .from('blog_posts')
+                .select('created_at')
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (recentPosts && recentPosts.length > 0) {
+                const latestDate = new Date(recentPosts[0].created_at).toDateString();
+                if (latestDate === today) {
+                    console.log("Post already exists for today. Aborting generation.");
+                    return;
+                }
+            }
+
             // 1. Generate content with Gemini
             const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
             if (!apiKey) throw new Error('Falta la API Key de Gemini (VITE_GEMINI_API_KEY)');
 
             const genAI = new GoogleGenerativeAI(apiKey);
 
-            // List of models to try in order of preference
             const modelNames = ["gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-pro"];
             let result = null;
             const errors: { model: string, msg: string }[] = [];
@@ -102,7 +132,6 @@ const Blog: React.FC = () => {
             }
 
             if (!result) {
-                // Format errors for display
                 const errorDetails = errors.map(e => `${e.model}: ${e.msg}`).join('\n');
                 throw new Error(`Fallaron todos los modelos:\n${errorDetails}`);
             }
@@ -110,7 +139,6 @@ const Blog: React.FC = () => {
             const response = await result.response;
             let text = response.text();
 
-            // Clean markdown code blocks if present (e.g. ```json ... ```)
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
             let aiData;
@@ -121,16 +149,14 @@ const Blog: React.FC = () => {
                 throw new Error("La IA generó una respuesta con formato inválido.");
             }
 
-            // Validate data
             const title = aiData.title || aiData.Title || "Consejo del Día";
-            const content = aiData.content || aiData.Content || text; // Fallback to raw text if content missing
+            const content = aiData.content || aiData.Content || text;
 
             // 2. Insert into Supabase
             const newPost = {
                 title: title,
                 content: content,
                 author: 'Parental AI',
-                // Placeholder image based on keywords from title
                 image_url: `https://source.unsplash.com/800x600/?parenting,${encodeURIComponent(title.split(' ')[0])}&sig=${Date.now()}`
             };
 
@@ -140,14 +166,22 @@ const Blog: React.FC = () => {
 
             if (dbError) throw dbError;
 
-            // 3. Refresh list
-            await fetchPosts();
+            // 3. Refresh list (but don't trigger another generation)
+            const { data: refreshedPosts } = await supabase
+                .from('blog_posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (refreshedPosts) {
+                setPosts(refreshedPosts);
+            }
 
         } catch (err: any) {
             console.error('Error generating post:', err);
             setError(err.message || 'Error generando el post. Verifica tu API Key.');
         } finally {
             setIsGenerating(false);
+            generationLockRef.current = false;
         }
     };
 
