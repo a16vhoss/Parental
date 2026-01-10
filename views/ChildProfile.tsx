@@ -12,6 +12,7 @@ interface ChildProfileProps {
   // Changed Baby to FamilyMember
   onUpdateChild: (child: FamilyMember) => void;
   onBack: () => void;
+  onEditMember?: (member: FamilyMember) => void;
 }
 
 interface GrowthPoint {
@@ -24,7 +25,7 @@ interface GrowthPoint {
   heightPercent: number;
 }
 
-const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUpdateChild, onBack }) => {
+const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUpdateChild, onBack, onEditMember }) => {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const [growthLogs, setGrowthLogs] = useState<GrowthPoint[]>([]);
@@ -201,7 +202,18 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
             <span className="material-symbols-outlined text-xs">chevron_right</span>
             <span className="text-primary font-medium">{child.name.split(' ')[0]}</span>
           </div>
-          <h1 className="text-3xl font-bold text-[#121716] dark:text-white">Perfil de {child.name.split(' ')[0]}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold text-[#121716] dark:text-white">Perfil de {child.name.split(' ')[0]}</h1>
+            {onEditMember && (
+              <button
+                onClick={() => onEditMember(child)}
+                className="p-1.5 bg-gray-100 dark:bg-white/10 text-gray-500 hover:text-primary rounded-full transition-all"
+                title="Editar perfil"
+              >
+                <span className="material-symbols-outlined text-lg">edit</span>
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex gap-3">
           <button

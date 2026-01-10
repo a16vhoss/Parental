@@ -27,6 +27,10 @@ const AppContent: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<any>(null);
+  const [showAddChild, setShowAddChild] = useState(false);
+  const [editingMember, setEditingMember] = useState<FamilyMember | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState('home');
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(true); // Track if session is being fetched
 
   const userName = session?.user?.user_metadata?.full_name || 'Usuario';
@@ -116,6 +120,16 @@ const AppContent: React.FC = () => {
     }
   }, [isDarkMode]);
 
+  const handleEditMember = (member: FamilyMember) => {
+    setEditingMember(member);
+    setShowAddChild(true);
+  };
+
+  const handleChildSelect = (childId: string) => {
+    setSelectedChildId(childId);
+    setActiveTab('child_profile');
+  };
+
   const handleViewMemberProfile = (id: string) => {
     navigate(`/familia/${id}`);
   };
@@ -126,42 +140,30 @@ const AppContent: React.FC = () => {
         throw new Error('No user ID found');
       }
 
-      // Remove temporary ID (timestamp) so Supabase generates a real UUID
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, ...memberData } = newMember;
-
-      // Add user_id to the object before saving
-      const memberToSave = {
-        ...memberData,
-        user_id: userId,
-        family_id: currentFamilyId // Link to shared family group
-      };
-
       const { data, error } = await supabase
         .from('family_members')
-        .insert([memberToSave])
-        .select();
+        .insert({ ...newMember, family_id: currentFamilyId, created_by: userId })
+        .select()
+        .single();
 
       if (error) {
-        console.error('Error adding member:', error);
-        if (error.message === 'Database not configured') {
-          setFamily(prev => [...prev, newMember]);
-          navigate('/familia');
-          return;
-        }
-        alert('Error al guardar en la base de datos: ' + error.message);
-      } else if (data) {
-        setFamily(prev => [...prev, data[0] as FamilyMember]);
+        console.error('Error adding new member:', error);
+        throw error;
+      }
+
+      if (data) {
+        setFamily(prev => [...prev, data as FamilyMember]);
+        setShowAddChild(false);
+        setEditingMember(undefined);
         navigate('/familia');
       }
     } catch (err) {
-      console.error('Error adding member:', err);
-      alert('Error inesperado al guardar.');
+      console.error('Unexpected error adding member:', err);
     }
   };
 
   const handleUpdateMember = async (updatedMember: FamilyMember) => {
-    const previousFamily = [...family];
+    const previousFamily = family;
     setFamily(prev => prev.map(m => m.id === updatedMember.id ? updatedMember : m));
 
     try {
@@ -175,6 +177,9 @@ const AppContent: React.FC = () => {
         if (error.message !== 'Database not configured') {
           setFamily(previousFamily);
         }
+      } else {
+        setShowAddChild(false);
+        setEditingMember(undefined);
       }
     } catch (err) {
       console.error('Error updating member:', err);
@@ -222,6 +227,23 @@ const AppContent: React.FC = () => {
       </div>
     </div>
   );
+
+  {
+    showAddChild && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="w-full max-w-2xl animate-in zoom-in-95 duration-200">
+          <AddChild
+            memberToEdit={editingMember}
+            onSave={editingMember ? handleUpdateMember : handleAddMember}
+            onCancel={() => {
+              setShowAddChild(false);
+              setEditingMember(undefined);
+            }}
+          />
+        </div>
+      </div>
+    )
+  };
 
   // Child profile wrapper to get ID from URL
   const ChildProfileWrapper = () => {
@@ -294,13 +316,13 @@ const AppContent: React.FC = () => {
             <Route path="/perfil" element={
               <ProtectedRoute>
                 <UserProfile
-                  userName={userName}
-                  userEmail={userEmail}
-                  userAvatar={userAvatar}
-                  userId={userId}
-                  joinedAt={userJoinedAt}
-                  userPhone={userPhone}
-                  userLocation={userLocation}
+                  userName={session?.user?.user_metadata?.full_name || 'Usuario'}
+                  userEmail={session?.user?.email || 'usuario@email.com'}
+                  userAvatar={session?.user?.user_metadata?.avatar_url}
+                  userId={session?.user?.id}
+                  joinedAt={session?.user?.created_at}
+                  userPhone={session?.user?.user_metadata?.phone}
+                  userLocation={session?.user?.user_metadata?.location}
                   stats={{
                     membersCount: family.length,
                     supportedAlerts: supportedAlerts,
@@ -309,6 +331,7 @@ const AppContent: React.FC = () => {
                   childrenList={family}
                   onProfileUpdate={refreshSession}
                   onNavigateToSettings={() => navigate('/configuracion')}
+                  onEditMember={handleEditMember}
                 />
               </ProtectedRoute>
             } />

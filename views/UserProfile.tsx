@@ -19,6 +19,7 @@ interface UserProfileProps {
   childrenList?: FamilyMember[];
   onProfileUpdate?: () => void;
   onNavigateToSettings: () => void;
+  onEditMember?: (member: FamilyMember) => void;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -32,7 +33,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   stats = { membersCount: 0, supportedAlerts: 0, directoryReviews: 0 },
   childrenList = [],
   onProfileUpdate,
-  onNavigateToSettings
+  onNavigateToSettings,
+  onEditMember
 }) => {
   // Format joined date (e.g., "Octubre 2023")
   const formattedJoinDate = joinedAt ? new Date(joinedAt).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'recientemente';
@@ -249,10 +251,18 @@ const UserProfile: React.FC<UserProfileProps> = ({
                       }`}>
                       {member.name.substring(0, 2).toUpperCase()}
                     </div>
-                    <div className="flex flex-col overflow-hidden">
+                    <div className="flex flex-col overflow-hidden flex-1">
                       <span className="text-sm font-bold text-[#121716] dark:text-white truncate">{member.name}</span>
                       <span className="text-[10px] uppercase font-bold text-[#678380] dark:text-gray-400">{member.role}</span>
                     </div>
+                    {onEditMember && (
+                      <button
+                        onClick={() => onEditMember(member)}
+                        className="p-1.5 text-gray-400 hover:text-primary hover:bg-white dark:hover:bg-white/10 rounded-full transition-all"
+                      >
+                        <span className="material-symbols-outlined text-lg">edit</span>
+                      </button>
+                    )}
                   </div>
                 ))
               ) : (

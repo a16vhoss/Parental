@@ -3,26 +3,27 @@ import React, { useState } from 'react';
 import { FamilyMember, FamilyRole } from '../types';
 
 interface AddChildProps {
+  memberToEdit?: FamilyMember;
   onSave: (member: FamilyMember) => void;
   onCancel: () => void;
 }
 
-const AddChild: React.FC<AddChildProps> = ({ onSave, onCancel }) => {
+const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    role: 'Hijo/a' as FamilyRole,
-    age: '',
-    dob: '',
-    sex: 'Male',
-    bloodGroup: 'O+',
-    weight: '',
-    height: '',
-    birthWeight: '',
-    birthHeight: '',
-    birthCity: '',
-    birthCountry: '',
-    avatar: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=200&h=200&auto=format&fit=crop',
-    email: ''
+    name: memberToEdit?.name || '',
+    role: memberToEdit?.role || 'Hijo/a' as FamilyRole,
+    age: memberToEdit?.age || '',
+    dob: memberToEdit?.vitals?.dob || '',
+    sex: memberToEdit?.vitals?.sex || 'Male',
+    bloodGroup: memberToEdit?.vitals?.bloodGroup || 'O+',
+    weight: memberToEdit?.vitals?.weight?.replace('kg', '') || '',
+    height: memberToEdit?.vitals?.height?.replace('cm', '') || '',
+    birthWeight: memberToEdit?.vitals?.birthWeight || '',
+    birthHeight: memberToEdit?.vitals?.birthHeight || '',
+    birthCity: memberToEdit?.vitals?.birthCity || '',
+    birthCountry: memberToEdit?.vitals?.birthCountry || '',
+    avatar: memberToEdit?.avatar || 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=200&h=200&auto=format&fit=crop',
+    email: memberToEdit?.email || ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -40,11 +41,11 @@ const AddChild: React.FC<AddChildProps> = ({ onSave, onCancel }) => {
     }
 
     const newMember: FamilyMember = {
-      id: Date.now().toString(),
+      id: memberToEdit?.id || Date.now().toString(),
       name: formData.name,
       role: formData.role,
       age: ageValue,
-      status: '✨ Recién Agregado',
+      status: memberToEdit?.status || '✨ Recién Agregado',
       avatar: formData.avatar,
       email: formData.role !== 'Hijo/a' ? formData.email : undefined,
       vitals: {
@@ -74,8 +75,12 @@ const AddChild: React.FC<AddChildProps> = ({ onSave, onCancel }) => {
           <span className="material-symbols-outlined">close</span>
         </button>
         <div>
-          <h1 className="text-3xl font-black text-[#121716] dark:text-white tracking-tight">Agregar Miembro Familiar</h1>
-          <p className="text-[#678380] dark:text-gray-400 mt-1">Registra a un nuevo integrante de tu círculo familiar.</p>
+          <h1 className="text-3xl font-black text-[#121716] dark:text-white tracking-tight">
+            {memberToEdit ? 'Editar Familiar' : 'Agregar Miembro Familiar'}
+          </h1>
+          <p className="text-[#678380] dark:text-gray-400 mt-1">
+            {memberToEdit ? 'Actualiza los datos de este miembro.' : 'Registra a un nuevo integrante de tu círculo familiar.'}
+          </p>
         </div>
       </div>
 
@@ -218,7 +223,7 @@ const AddChild: React.FC<AddChildProps> = ({ onSave, onCancel }) => {
             type="submit"
             className="flex-1 bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
           >
-            Guardar Miembro
+            {memberToEdit ? 'Guardar Cambios' : 'Guardar Miembro'}
           </button>
         </div>
       </form>
