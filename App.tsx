@@ -23,6 +23,7 @@ const AppContent: React.FC = () => {
   const location = useLocation();
 
   const [family, setFamily] = useState<FamilyMember[]>([]);
+  const [currentFamilyId, setCurrentFamilyId] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<any>(null);
@@ -70,6 +71,22 @@ const AppContent: React.FC = () => {
 
       setIsLoading(true);
       try {
+        // 1. Get User's Family ID first
+        let userFamilyId = currentFamilyId;
+        if (!userFamilyId) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('family_id')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile?.family_id) {
+            userFamilyId = profile.family_id;
+            setCurrentFamilyId(profile.family_id);
+          }
+        }
+
+        // 2. Fetch Family Members (RLS will filter, but we can be explicit)
         const { data, error } = await supabase
           .from('family_members')
           .select('*')
@@ -116,7 +133,8 @@ const AppContent: React.FC = () => {
       // Add user_id to the object before saving
       const memberToSave = {
         ...memberData,
-        user_id: userId
+        user_id: userId,
+        family_id: currentFamilyId // Link to shared family group
       };
 
       const { data, error } = await supabase
