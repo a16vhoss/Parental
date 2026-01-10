@@ -21,7 +21,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               </div>
             </div>
             <div className="hidden md:flex items-center gap-8">
-              <a className="text-sm font-semibold text-text-main dark:text-gray-200 hover:text-primary transition-colors" href="#features">Funciones</a>
+              <a className="text-sm font-semibold text-text-main dark:text-gray-200 hover:text-primary transition-colors" href="/#features">Funciones</a>
             </div>
             <div className="flex items-center gap-3">
               <button onClick={onEnterApp} className="h-10 px-5 flex items-center justify-center rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-bold transition-colors shadow-lg shadow-primary/20">

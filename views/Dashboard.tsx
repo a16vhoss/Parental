@@ -68,6 +68,7 @@ const ALL_GUIDES: GuideArticle[] = [
 const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewProfile, onAddChild }) => {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [readArticles, setReadArticles] = useState<Set<string>>(new Set());
+  const [bookmarked, setBookmarked] = useState<Set<string>>(new Set());
 
   // States for new buttons
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -128,6 +129,16 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
   const toggleRead = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setReadArticles(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleBookmark = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBookmarked(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -281,6 +292,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
             {relevantGuides.map((guide) => {
               const isFav = favorites.has(guide.id);
               const isRead = readArticles.has(guide.id);
+              const isBookmarked = bookmarked.has(guide.id);
 
               return (
                 <article
@@ -338,8 +350,14 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
                             favorite
                           </span>
                         </button>
-                        <button className="p-2 rounded-lg text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                          <span className="material-symbols-outlined text-[22px]">bookmark_add</span>
+                        <button
+                          onClick={(e) => toggleBookmark(guide.id, e)}
+                          title={isBookmarked ? "Quitar de guardados" : "Guardar para después"}
+                          className={`p-2 rounded-lg transition-colors flex items-center justify-center ${isBookmarked ? 'text-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
+                        >
+                          <span className={`material-symbols-outlined text-[22px] ${isBookmarked ? 'icon-filled' : ''}`}>
+                            {isBookmarked ? 'bookmark' : 'bookmark_add'}
+                          </span>
                         </button>
                       </div>
                     </div>
