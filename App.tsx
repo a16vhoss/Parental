@@ -29,6 +29,10 @@ const App: React.FC = () => {
   const userPhone = session?.user?.user_metadata?.phone || '';
   const userLocation = session?.user?.user_metadata?.location || '';
 
+  // Stats derived from session metadata or state
+  const supportedAlerts = session?.user?.user_metadata?.supported_alerts || 0;
+  const directoryReviews = session?.user?.user_metadata?.directory_reviews || 0;
+
   const refreshSession = async () => {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (session) {
@@ -213,6 +217,11 @@ const App: React.FC = () => {
             joinedAt={userJoinedAt}
             userPhone={userPhone}
             userLocation={userLocation}
+            stats={{
+              membersCount: family.length,
+              supportedAlerts: supportedAlerts,
+              directoryReviews: directoryReviews
+            }}
             onProfileUpdate={refreshSession}
             onNavigateToSettings={() => setCurrentView(AppView.SETTINGS)}
           />

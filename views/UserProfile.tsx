@@ -120,15 +120,15 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-[#678380]">Miembros registrados</span>
-                <span className="font-bold text-primary">3</span>
+                <span className="font-bold text-primary">{stats.membersCount}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-[#678380]">Alertas apoyadas</span>
-                <span className="font-bold text-primary">14</span>
+                <span className="font-bold text-primary">{stats.supportedAlerts}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-[#678380]">Reseñas en directorio</span>
-                <span className="font-bold text-primary">8</span>
+                <span className="font-bold text-primary">{stats.directoryReviews}</span>
               </div>
             </div>
           </div>
