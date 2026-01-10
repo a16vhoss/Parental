@@ -24,6 +24,7 @@ const App: React.FC = () => {
 
   const userName = session?.user?.user_metadata?.full_name || 'Usuario';
   const userEmail = session?.user?.email || '';
+  const userId = session?.user?.id;
   const userAvatar = session?.user?.user_metadata?.avatar_url || null;
   const userJoinedAt = session?.user?.created_at || new Date().toISOString();
   const userPhone = session?.user?.user_metadata?.phone || '';
@@ -214,6 +215,7 @@ const App: React.FC = () => {
             userName={userName}
             userEmail={userEmail}
             userAvatar={userAvatar}
+            userId={userId}
             joinedAt={userJoinedAt}
             userPhone={userPhone}
             userLocation={userLocation}

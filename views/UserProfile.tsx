@@ -6,6 +6,7 @@ interface UserProfileProps {
   userName: string;
   userEmail: string;
   userAvatar?: string | null;
+  userId?: string;
   joinedAt?: string;
   userPhone?: string;
   userLocation?: string;
@@ -22,6 +23,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   userName,
   userEmail,
   userAvatar,
+  userId,
   joinedAt,
   userPhone,
   userLocation,
@@ -62,8 +64,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const fileName = `${Date.now()}.${fileExt}`;
+      // Use userId folder if available, otherwise fallback to root (which might fail RLS)
+      const filePath = userId ? `${userId}/${fileName}` : fileName;
 
       setIsUploading(true);
       setMessage(null);
