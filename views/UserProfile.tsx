@@ -9,6 +9,11 @@ interface UserProfileProps {
   joinedAt?: string;
   userPhone?: string;
   userLocation?: string;
+  stats?: {
+    membersCount: number;
+    supportedAlerts: number;
+    directoryReviews: number;
+  };
   onProfileUpdate?: () => void;
   onNavigateToSettings: () => void;
 }
@@ -20,6 +25,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   joinedAt,
   userPhone,
   userLocation,
+  stats = { membersCount: 0, supportedAlerts: 0, directoryReviews: 0 },
   onProfileUpdate,
   onNavigateToSettings
 }) => {
