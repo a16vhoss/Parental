@@ -69,6 +69,11 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [readArticles, setReadArticles] = useState<Set<string>>(new Set());
 
+  // States for new buttons
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+
   // Helper para convertir la cadena de edad a meses aproximados para la lógica de filtrado
   const parseAgeToMonths = (ageStr: string): number => {
     const age = ageStr.toLowerCase();
@@ -83,17 +88,32 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
     return 0;
   };
 
-  // Filtrar guías relevantes basadas en la lista de hijos
+  // Filtrar guías relevantes basadas en la lista de hijos Y la búsqueda
   const relevantGuides = useMemo(() => {
-    const childrenMonths = childrenList.map(c => parseAgeToMonths(c.age));
+    let guides = ALL_GUIDES;
 
-    // Si no hay hijos, mostrar todas las guías destacadas
-    if (childrenMonths.length === 0) return ALL_GUIDES.slice(0, 2);
+    // Filter by child age
+    if (childrenList.length > 0) {
+      const childrenMonths = childrenList.map(c => parseAgeToMonths(c.age));
+      guides = guides.filter(guide => {
+        return childrenMonths.some(months => months >= guide.minAgeMonths && months <= guide.maxAgeMonths);
+      });
+    } else {
+      guides = guides.slice(0, 2);
+    }
 
-    return ALL_GUIDES.filter(guide => {
-      return childrenMonths.some(months => months >= guide.minAgeMonths && months <= guide.maxAgeMonths);
-    });
-  }, [childrenList]);
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      guides = ALL_GUIDES.filter(g =>
+        g.title.toLowerCase().includes(query) ||
+        g.description.toLowerCase().includes(query) ||
+        g.category.toLowerCase().includes(query)
+      );
+    }
+
+    return guides;
+  }, [childrenList, searchQuery]);
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -116,26 +136,100 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
   };
 
   return (
-    <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-10 w-full scroll-smooth bg-background-light dark:bg-background-dark">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-10 w-full scroll-smooth bg-background-light dark:bg-background-dark" onClick={() => setShowNotifications(false)}>
       <div className="max-w-[800px] mx-auto flex flex-col gap-10">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="flex flex-col gap-2">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative">
+          <div className="flex flex-col gap-2 w-full">
             <p className="text-[#678380] dark:text-gray-400 text-sm font-medium uppercase tracking-wider">
               {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
             </p>
-            <h1 className="text-[#121716] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
-              Buenos días, <span className="text-primary">{userName}</span>
-            </h1>
-            <p className="text-[#678380] dark:text-gray-300 text-base font-normal">Aquí tienes el resumen familiar de hoy.</p>
+
+            {isSearchOpen ? (
+              <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="relative flex-1 max-w-md">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Buscar guías, consejos..."
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-surface-dark border-none shadow-sm focus:ring-2 focus:ring-primary/50 outline-none text-[#121716] dark:text-white"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <span className="material-symbols-outlined text-sm">close</span>
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
+                  className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full"
+                >
+                  <span className="text-xs font-bold">Cancelar</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <h1 className="text-[#121716] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
+                  Buenos días, <span className="text-primary">{userName}</span>
+                </h1>
+                <p className="text-[#678380] dark:text-gray-300 text-base font-normal">Aquí tienes el resumen familiar de hoy.</p>
+              </>
+            )}
           </div>
-          <div className="hidden md:flex gap-2">
-            <button className="w-10 h-10 rounded-full bg-white dark:bg-surface-dark flex items-center justify-center text-[#121716] dark:text-white shadow-sm hover:shadow-md transition-all">
+
+          <div className="hidden md:flex gap-2 relative">
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsSearchOpen(!isSearchOpen); }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all ${isSearchOpen ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-[#121716] dark:text-white'}`}
+            >
               <span className="material-symbols-outlined">search</span>
             </button>
-            <button className="w-10 h-10 rounded-full bg-white dark:bg-surface-dark flex items-center justify-center text-[#121716] dark:text-white shadow-sm hover:shadow-md transition-all relative">
-              <span className="material-symbols-outlined">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full"></span>
-            </button>
+
+            <div className="relative">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); }}
+                className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all relative ${showNotifications ? 'bg-primary/10 text-primary' : 'bg-white dark:bg-surface-dark text-[#121716] dark:text-white'}`}
+              >
+                <span className={`material-symbols-outlined ${showNotifications ? 'icon-filled' : ''}`}>notifications</span>
+                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+              </button>
+
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 top-12 w-80 bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                  <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                    <h3 className="font-bold text-[#121716] dark:text-white">Notificaciones</h3>
+                    <span className="text-xs text-primary font-bold cursor-pointer">Marcar leídas</span>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto">
+                    {[
+                      { icon: 'vaccines', color: 'text-blue-500', title: 'Vacuna Próxima', desc: 'Refuerzo de 6 meses para Santi mañana.', time: 'Hace 2h' },
+                      { icon: 'auto_awesome', color: 'text-purple-500', title: 'Nuevo Consejo IA', desc: 'Blog: "Cómo manejar los terribles 2".', time: 'Hace 5h' },
+                      { icon: 'event', color: 'text-orange-500', title: 'Cita Pediatra', desc: 'Recordatorio: Dr. Martínez el Jueves.', time: 'Ayer' },
+                    ].map((topic, i) => (
+                      <div key={i} className="p-4 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer border-b border-gray-50 dark:border-gray-800 last:border-0 flex gap-3">
+                        <div className={`w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center ${topic.color}`}>
+                          <span className="material-symbols-outlined text-lg">{topic.icon}</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-[#121716] dark:text-white leading-tight">{topic.title}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{topic.desc}</p>
+                          <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">{topic.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 bg-gray-50 dark:bg-white/5 text-center">
+                    <button className="text-xs font-bold text-gray-500 hover:text-primary transition-colors">Ver todas</button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
