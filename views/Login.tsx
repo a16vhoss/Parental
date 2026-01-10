@@ -22,7 +22,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -33,7 +33,16 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           },
         });
         if (error) throw error;
-        setMessage('Revisa tu email para confirmar tu cuenta.');
+
+        // If session is created inside data, user is logged in (email confirmation disabled)
+        if (data.session) {
+          onLoginSuccess();
+        } else {
+          // Fallback if Supabase STILL requires email confirmation despite user request
+          setMessage('Cuenta creada con éxito. Por favor inicia sesión.');
+          // Optional: Auto-switch to login tab
+          setIsSignUp(false);
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -53,11 +62,11 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="bg-surface rounded-2xl shadow-xl p-8 w-full max-w-md border border-neutral-light">
         <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-               <div className="bg-primary/10 p-3 rounded-full">
-                  <span className="material-symbols-outlined text-4xl text-primary">family_restroom</span>
-               </div>
+          <div className="flex justify-center mb-4">
+            <div className="bg-primary/10 p-3 rounded-full">
+              <span className="material-symbols-outlined text-4xl text-primary">family_restroom</span>
             </div>
+          </div>
           <h2 className="text-2xl font-display font-bold text-text-main mb-2">
             {isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
           </h2>
@@ -80,7 +89,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               />
             </div>
           )}
-          
+
           <div>
             <label className="block text-sm font-medium text-text-muted mb-1">Email</label>
             <input
@@ -94,7 +103,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </div>
 
           <div>
-             <label className="block text-sm font-medium text-text-muted mb-1">Contraseña</label>
+            <label className="block text-sm font-medium text-text-muted mb-1">Contraseña</label>
             <input
               type="password"
               value={password}
@@ -107,15 +116,15 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">error</span>
-                {error}
+              <span className="material-symbols-outlined text-lg">error</span>
+              {error}
             </div>
           )}
 
           {message && (
             <div className="bg-green-50 text-green-600 p-3 rounded-lg text-sm flex items-center gap-2">
-                 <span className="material-symbols-outlined text-lg">check_circle</span>
-                {message}
+              <span className="material-symbols-outlined text-lg">check_circle</span>
+              {message}
             </div>
           )}
 
@@ -125,27 +134,27 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-                <span className="material-symbols-outlined animate-spin">sync</span>
+              <span className="material-symbols-outlined animate-spin">sync</span>
             ) : isSignUp ? (
-                'Registrarse'
+              'Registrarse'
             ) : (
-                'Ingresar'
+              'Ingresar'
             )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-            <button
-                onClick={() => {
-                    setIsSignUp(!isSignUp);
-                    setError(null);
-                    setMessage(null);
-                }}
-                className="text-primary hover:text-primary-dark text-sm font-medium transition-colors"
-                type="button"
-            >
-                {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
-            </button>
+          <button
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setError(null);
+              setMessage(null);
+            }}
+            className="text-primary hover:text-primary-dark text-sm font-medium transition-colors"
+            type="button"
+          >
+            {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+          </button>
         </div>
       </div>
     </div>
