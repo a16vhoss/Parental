@@ -56,10 +56,9 @@ const Blog: React.FC = () => {
             const genAI = new GoogleGenerativeAI(apiKey);
 
             // List of models to try in order of preference
-            const modelNames = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro", "gemini-1.0-pro"];
-            let model = null;
+            const modelNames = ["gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-pro"];
             let result = null;
-            let lastError = null;
+            const errors: { model: string, msg: string }[] = [];
 
             for (const modelName of modelNames) {
                 try {
@@ -75,18 +74,18 @@ const Blog: React.FC = () => {
           Schema: { "title": "Titulo del post", "content": "Contenido en markdown" }`;
 
                     result = await currentModel.generateContent(prompt);
-                    // If successful, break the loop
                     console.log(`¡Éxito con modelo ${modelName}!`);
                     break;
                 } catch (e: any) {
                     console.warn(`Falló modelo ${modelName}:`, e.message);
-                    lastError = e;
-                    // Continue to next model
+                    errors.push({ model: modelName, msg: e.message });
                 }
             }
 
             if (!result) {
-                throw new Error(`No se pudo generar con ningún modelo. Último error: ${lastError?.message}`);
+                // Format errors for display
+                const errorDetails = errors.map(e => `${e.model}: ${e.msg}`).join('\n');
+                throw new Error(`Fallaron todos los modelos:\n${errorDetails}`);
             }
 
             const response = await result.response;
