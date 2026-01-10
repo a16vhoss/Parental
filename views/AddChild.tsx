@@ -144,6 +144,16 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) =
               <option value="Female">Femenino</option>
             </select>
           </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Fecha de Nacimiento</label>
+            <input
+              type="date"
+              name="dob"
+              value={formData.dob}
+              onChange={handleChange}
+              className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+            />
+          </div>
 
           {formData.role !== 'Hijo/a' && (
             <div className="space-y-2 md:col-span-2">
