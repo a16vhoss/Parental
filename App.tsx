@@ -24,6 +24,7 @@ const AppContent: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<any>(null);
+  const [isSessionLoading, setIsSessionLoading] = useState(true); // Track if session is being fetched
 
   const userName = session?.user?.user_metadata?.full_name || 'Usuario';
   const userEmail = session?.user?.email || '';
@@ -46,12 +47,14 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      setIsSessionLoading(false); // Session check complete
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setIsSessionLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -159,6 +162,10 @@ const AppContent: React.FC = () => {
 
   // Protected route wrapper
   const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    // Wait for session to be determined before redirecting
+    if (isSessionLoading) {
+      return <LoadingSpinner />;
+    }
     if (!session) {
       return <Navigate to="/login" replace />;
     }
