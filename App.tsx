@@ -286,6 +286,12 @@ const AppContent: React.FC = () => {
               </ProtectedRoute>
             } />
 
+            <Route path="/blog" element={
+              <ProtectedRoute>
+                <Blog />
+              </ProtectedRoute>
+            } />
+
             <Route path="/directorio" element={
               <ProtectedRoute>
                 <Directory />
