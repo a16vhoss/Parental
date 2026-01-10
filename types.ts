@@ -20,6 +20,7 @@ export interface FamilyMember {
   name: string;
   role: FamilyRole;
   age: string;
+  email?: string;
   status: string;
   avatar: string;
   vitals: {
