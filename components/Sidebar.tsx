@@ -1,24 +1,39 @@
 
 import React from 'react';
-import { AppView } from '../types';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 interface SidebarProps {
   userName: string;
-  activeView: AppView;
-  onNavigate: (view: AppView) => void;
+  currentPath: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ userName, activeView, onNavigate }) => {
+const Sidebar: React.FC<SidebarProps> = ({ userName, currentPath }) => {
+  const navigate = useNavigate();
+
   const navItems = [
-    { view: AppView.DASHBOARD, label: 'Panel de Control', icon: 'grid_view' },
-    { view: AppView.DIRECTORY, label: 'Directorio', icon: 'map' },
-    { view: AppView.PROFILE, label: 'Mi Familia', icon: 'groups' },
+    { path: '/dashboard', label: 'Panel de Control', icon: 'grid_view' },
+    { path: '/directorio', label: 'Directorio', icon: 'map' },
+    { path: '/familia', label: 'Mi Familia', icon: 'groups' },
   ];
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  // Helper to check if a path is active
+  const isActive = (path: string) => {
+    if (path === '/familia') {
+      return currentPath.startsWith('/familia');
+    }
+    return currentPath === path;
+  };
 
   return (
     <aside className="hidden lg:flex flex-col w-72 h-full bg-white dark:bg-surface-dark border-r border-gray-100 dark:border-gray-700/50 p-6 justify-between flex-shrink-0 z-20 shadow-sm sticky top-0">
       <div className="flex flex-col gap-8">
-        <div className="flex items-center gap-3 px-2">
+        <Link to="/dashboard" className="flex items-center gap-3 px-2">
           <div className="bg-primary/10 p-2 rounded-xl">
             <span className="material-symbols-outlined text-primary text-3xl">family_star</span>
           </div>
@@ -26,30 +41,30 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, activeView, onNavigate }) =
             <h1 className="text-[#121716] dark:text-white text-xl font-black leading-none tracking-tight">parental</h1>
             <p className="text-[#678380] dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider mt-1.5">Plataforma Digital</p>
           </div>
-        </div>
+        </Link>
 
         <nav className="flex flex-col gap-2">
           {navItems.map((item) => (
-            <button
-              key={item.view}
-              onClick={() => onNavigate(item.view)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${activeView === item.view
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isActive(item.path)
                 ? 'bg-background-light dark:bg-white/5 text-primary'
                 : 'text-[#678380] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#121716] dark:hover:text-white'
                 }`}
             >
-              <span className={`material-symbols-outlined ${activeView === item.view ? 'icon-filled' : ''} group-hover:scale-110 transition-transform`}>
+              <span className={`material-symbols-outlined ${isActive(item.path) ? 'icon-filled' : ''} group-hover:scale-110 transition-transform`}>
                 {item.icon}
               </span>
-              <span className={`text-sm ${activeView === item.view ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
-            </button>
+              <span className={`text-sm ${isActive(item.path) ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+            </Link>
           ))}
         </nav>
       </div>
 
       <div className="flex flex-col gap-4">
-        <button
-          onClick={() => onNavigate(AppView.EMERGENCY)}
+        <Link
+          to="/alerta"
           className="relative overflow-hidden w-full group cursor-pointer rounded-xl bg-rose-500 hover:bg-rose-600 text-white p-4 transition-all shadow-lg shadow-rose-200 dark:shadow-none"
         >
           <div className="flex items-center justify-center gap-2 relative z-10">
@@ -57,12 +72,12 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, activeView, onNavigate }) =
             <span className="text-sm font-bold tracking-wide">ALERTA AMBER</span>
           </div>
           <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-        </button>
+        </Link>
 
         <div className="flex items-center gap-3 px-2 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-          <button
-            onClick={() => onNavigate(AppView.USER_PROFILE)}
-            className={`flex items-center gap-3 flex-1 overflow-hidden p-2 rounded-xl transition-all hover:bg-gray-50 dark:hover:bg-white/5 ${activeView === AppView.USER_PROFILE ? 'bg-gray-50 dark:bg-white/5' : ''}`}
+          <Link
+            to="/perfil"
+            className={`flex items-center gap-3 flex-1 overflow-hidden p-2 rounded-xl transition-all hover:bg-gray-50 dark:hover:bg-white/5 ${currentPath === '/perfil' || currentPath === '/configuracion' ? 'bg-gray-50 dark:bg-white/5' : ''}`}
           >
             <div className="relative shrink-0">
               <img
@@ -76,8 +91,8 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, activeView, onNavigate }) =
               <p className="text-[#121716] dark:text-white text-sm font-bold truncate">{userName}</p>
               <p className="text-[10px] text-[#678380] dark:text-gray-400 uppercase font-bold tracking-tighter">Usuario</p>
             </div>
-          </button>
-          <button onClick={() => onNavigate(AppView.LANDING)} className="text-[#678380] hover:text-[#121716] dark:text-gray-400 dark:hover:text-white transition-colors p-2">
+          </Link>
+          <button onClick={handleLogout} className="text-[#678380] hover:text-[#121716] dark:text-gray-400 dark:hover:text-white transition-colors p-2">
             <span className="material-symbols-outlined text-[20px]">logout</span>
           </button>
         </div>

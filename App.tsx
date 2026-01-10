@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppView, FamilyMember } from './types';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { FamilyMember } from './types';
 import LandingPage from './views/LandingPage';
 import Dashboard from './views/Dashboard';
 import ChildProfile from './views/ChildProfile';
@@ -14,10 +15,12 @@ import Login from './views/Login';
 import Sidebar from './components/Sidebar';
 import { supabase } from './lib/supabase';
 
-const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<AppView>(AppView.LANDING);
+// Wrapper component that provides navigation context
+const AppContent: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [family, setFamily] = useState<FamilyMember[]>([]);
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<any>(null);
@@ -30,12 +33,11 @@ const App: React.FC = () => {
   const userPhone = session?.user?.user_metadata?.phone || '';
   const userLocation = session?.user?.user_metadata?.location || '';
 
-  // Stats derived from session metadata or state
   const supportedAlerts = session?.user?.user_metadata?.supported_alerts || 0;
   const directoryReviews = session?.user?.user_metadata?.directory_reviews || 0;
 
   const refreshSession = async () => {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       setSession(session);
     }
@@ -55,11 +57,11 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch initial family data from Supabase
+  // Fetch family data when authenticated
   useEffect(() => {
     const fetchFamily = async () => {
-      // Don't show global loader on landing or login, only when navigating in
-      if (!session || currentView === AppView.LANDING || currentView === AppView.LOGIN) return;
+      if (!session) return;
+      if (location.pathname === '/' || location.pathname === '/login') return;
 
       setIsLoading(true);
       try {
@@ -70,7 +72,6 @@ const App: React.FC = () => {
 
         if (error) {
           console.error('Supabase fetch error:', error);
-          // Fallback to empty if error
           if (family.length === 0) setFamily([]);
         } else if (data) {
           setFamily(data as FamilyMember[]);
@@ -83,7 +84,7 @@ const App: React.FC = () => {
     };
 
     fetchFamily();
-  }, [currentView, session]);
+  }, [location.pathname, session]);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -94,8 +95,7 @@ const App: React.FC = () => {
   }, [isDarkMode]);
 
   const handleViewMemberProfile = (id: string) => {
-    setSelectedMemberId(id);
-    setCurrentView(AppView.PROFILE_DETAIL);
+    navigate(`/familia/${id}`);
   };
 
   const handleAddMember = async (newMember: FamilyMember) => {
@@ -107,16 +107,15 @@ const App: React.FC = () => {
 
       if (error) {
         console.error('Error adding member:', error);
-        // Optimistic local update if DB fails (demo mode)
         if (error.message === 'Database not configured') {
           setFamily(prev => [...prev, newMember]);
-          setCurrentView(AppView.PROFILE);
+          navigate('/familia');
           return;
         }
         alert('Error al guardar en la base de datos: ' + error.message);
       } else if (data) {
         setFamily(prev => [...prev, data[0] as FamilyMember]);
-        setCurrentView(AppView.PROFILE);
+        navigate('/familia');
       }
     } catch (err) {
       console.error('Error adding member:', err);
@@ -125,7 +124,6 @@ const App: React.FC = () => {
   };
 
   const handleUpdateMember = async (updatedMember: FamilyMember) => {
-    // Optimistic update
     const previousFamily = [...family];
     setFamily(prev => prev.map(m => m.id === updatedMember.id ? updatedMember : m));
 
@@ -138,7 +136,7 @@ const App: React.FC = () => {
       if (error) {
         console.error('Error updating member:', error);
         if (error.message !== 'Database not configured') {
-          setFamily(previousFamily); // Rollback on real error
+          setFamily(previousFamily);
         }
       }
     } catch (err) {
@@ -149,123 +147,164 @@ const App: React.FC = () => {
 
   const handleEnterApp = () => {
     if (session) {
-      setCurrentView(AppView.DASHBOARD);
+      navigate('/dashboard');
     } else {
-      setCurrentView(AppView.LOGIN);
+      navigate('/login');
     }
   };
 
-  const renderView = () => {
-    if (isLoading && currentView !== AppView.LANDING && currentView !== AppView.LOGIN) {
-      return (
-        <div className="flex-1 flex flex-col items-center justify-center p-20">
-          <div className="size-20 bg-primary/10 rounded-full mb-6 flex items-center justify-center relative">
-            <span className="material-symbols-outlined text-primary text-4xl animate-spin">sync</span>
-            <div className="absolute inset-0 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-          </div>
-          <div className="text-center">
-            <h2 className="text-lg font-bold text-text-main dark:text-white mb-1">Sincronizando</h2>
-            <p className="text-text-muted dark:text-gray-400 text-xs font-bold tracking-widest uppercase">Conectando con tu nube familiar</p>
-          </div>
-        </div>
-      );
-    }
-
-    switch (currentView) {
-      case AppView.LANDING:
-        return <LandingPage onEnterApp={handleEnterApp} />;
-      case AppView.LOGIN:
-        return <Login onLoginSuccess={() => setCurrentView(AppView.DASHBOARD)} />;
-      case AppView.DASHBOARD:
-        return (
-          <Dashboard
-            userName={userName}
-            childrenList={family.filter(m => m.role === 'Hijo/a')}
-            onViewProfile={handleViewMemberProfile}
-            onAddChild={() => setCurrentView(AppView.ADD_CHILD)}
-          />
-        );
-      case AppView.ADD_CHILD:
-        return (
-          <AddChild
-            onSave={handleAddMember}
-            onCancel={() => setCurrentView(AppView.PROFILE)}
-          />
-        );
-      case AppView.PROFILE:
-        return (
-          <FamilyView
-            childrenList={family}
-            onViewChild={handleViewMemberProfile}
-            onAddChild={() => setCurrentView(AppView.ADD_CHILD)}
-          />
-        );
-      case AppView.PROFILE_DETAIL:
-        return (
-          <ChildProfile
-            childId={selectedMemberId}
-            childrenList={family}
-            onUpdateChild={handleUpdateMember}
-            onBack={() => setCurrentView(AppView.PROFILE)}
-          />
-        );
-      case AppView.USER_PROFILE:
-        return (
-          <UserProfile
-            userName={userName}
-            userEmail={userEmail}
-            userAvatar={userAvatar}
-            userId={userId}
-            joinedAt={userJoinedAt}
-            userPhone={userPhone}
-            userLocation={userLocation}
-            stats={{
-              membersCount: family.length,
-              supportedAlerts: supportedAlerts,
-              directoryReviews: directoryReviews
-            }}
-            onProfileUpdate={refreshSession}
-            onNavigateToSettings={() => setCurrentView(AppView.SETTINGS)}
-          />
-        );
-      case AppView.SETTINGS:
-        return (
-          <Settings
-            isDarkMode={isDarkMode}
-            onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-            onBack={() => setCurrentView(AppView.USER_PROFILE)}
-          />
-        );
-      case AppView.DIRECTORY:
-        return <Directory />;
-      case AppView.EMERGENCY:
-        return <EmergencyAlert onCancel={() => setCurrentView(AppView.DASHBOARD)} />;
-      default:
-        return <LandingPage onEnterApp={handleEnterApp} />;
-    }
+  const handleLoginSuccess = () => {
+    navigate('/dashboard');
   };
 
-  const showSidebar = currentView !== AppView.LANDING && currentView !== AppView.LOGIN && currentView !== AppView.EMERGENCY;
+  // Protected route wrapper
+  const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    if (!session) {
+      return <Navigate to="/login" replace />;
+    }
+    return <>{children}</>;
+  };
+
+  // Determine if sidebar should show
+  const showSidebar = !["/", "/login", "/alerta"].includes(location.pathname);
+
+  // Loading spinner
+  const LoadingSpinner = () => (
+    <div className="flex-1 flex flex-col items-center justify-center p-20">
+      <div className="size-20 bg-primary/10 rounded-full mb-6 flex items-center justify-center relative">
+        <span className="material-symbols-outlined text-primary text-4xl animate-spin">sync</span>
+        <div className="absolute inset-0 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+      </div>
+      <div className="text-center">
+        <h2 className="text-lg font-bold text-text-main dark:text-white mb-1">Sincronizando</h2>
+        <p className="text-text-muted dark:text-gray-400 text-xs font-bold tracking-widest uppercase">Conectando con tu nube familiar</p>
+      </div>
+    </div>
+  );
+
+  // Child profile wrapper to get ID from URL
+  const ChildProfileWrapper = () => {
+    const { id } = useParams();
+    return (
+      <ChildProfile
+        childId={id || null}
+        childrenList={family}
+        onUpdateChild={handleUpdateMember}
+        onBack={() => navigate('/familia')}
+      />
+    );
+  };
 
   return (
     <div className="flex min-h-screen">
       {showSidebar && (
         <Sidebar
           userName={userName}
-          activeView={activeViewMapper(currentView)}
-          onNavigate={setCurrentView}
+          currentPath={location.pathname}
         />
       )}
       <div className={`flex-1 w-full ${showSidebar ? 'lg:pl-0' : ''}`}>
-        {renderView()}
+        {isLoading && showSidebar ? (
+          <LoadingSpinner />
+        ) : (
+          <Routes>
+            <Route path="/" element={<LandingPage onEnterApp={handleEnterApp} />} />
+            <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard
+                  userName={userName}
+                  childrenList={family.filter(m => m.role === 'Hijo/a')}
+                  onViewProfile={handleViewMemberProfile}
+                  onAddChild={() => navigate('/familia/nuevo')}
+                />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/familia" element={
+              <ProtectedRoute>
+                <FamilyView
+                  childrenList={family}
+                  onViewChild={handleViewMemberProfile}
+                  onAddChild={() => navigate('/familia/nuevo')}
+                />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/familia/nuevo" element={
+              <ProtectedRoute>
+                <AddChild
+                  onSave={handleAddMember}
+                  onCancel={() => navigate('/familia')}
+                />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/familia/:id" element={
+              <ProtectedRoute>
+                <ChildProfileWrapper />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/perfil" element={
+              <ProtectedRoute>
+                <UserProfile
+                  userName={userName}
+                  userEmail={userEmail}
+                  userAvatar={userAvatar}
+                  userId={userId}
+                  joinedAt={userJoinedAt}
+                  userPhone={userPhone}
+                  userLocation={userLocation}
+                  stats={{
+                    membersCount: family.length,
+                    supportedAlerts: supportedAlerts,
+                    directoryReviews: directoryReviews
+                  }}
+                  onProfileUpdate={refreshSession}
+                  onNavigateToSettings={() => navigate('/configuracion')}
+                />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/configuracion" element={
+              <ProtectedRoute>
+                <Settings
+                  isDarkMode={isDarkMode}
+                  onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+                  onBack={() => navigate('/perfil')}
+                />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/directorio" element={
+              <ProtectedRoute>
+                <Directory />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/alerta" element={
+              <ProtectedRoute>
+                <EmergencyAlert onCancel={() => navigate('/dashboard')} />
+              </ProtectedRoute>
+            } />
+
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        )}
       </div>
     </div>
   );
 };
 
-function activeViewMapper(view: AppView): AppView {
-  if (view === AppView.SETTINGS || view === AppView.PROFILE_DETAIL || view === AppView.ADD_CHILD) return AppView.PROFILE;
-  return view;
-}
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+};
 
 export default App;
