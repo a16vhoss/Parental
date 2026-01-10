@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 interface BlogPost {
     id: string;
@@ -53,32 +53,43 @@ const Blog: React.FC = () => {
             const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
             if (!apiKey) throw new Error('Falta la API Key de Gemini (VITE_GEMINI_API_KEY)');
 
-            const genAI = new GoogleGenAI({ apiKey });
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-            const prompt = `Escribe un artículo de blog corto (300-400 palabras) sobre un consejo de crianza, salud infantil o desarrollo para padres. 
-      Titulo atractivo.
-      Estilo empático, profesional y basado en evidencia.
-      Formato JSON: { "title": "...", "content": "..." }
-      El contenido debe estar en Markdown.`;
+            const prompt = `Escribe un artículo de blog corto (300-400 palabras) sobre un consejo valioso de crianza, salud infantil o desarrollo para padres.
+      
+      Requisitos:
+      - Título: Atractivo y claro.
+      - Contenido: Estilo empático, profesional y basado en evidencia. Usa Markdown (negritas, listas).
+      - FORMATO DE RESPUESTA: Solo JSON válido.
+      Schema: { "title": "Titulo del post", "content": "Contenido en markdown" }`;
 
-            const result = await genAI.models.generateContent({
-                model: "gemini-2.0-flash-exp", // Verify available model
-                contents: prompt,
-                config: { responseMimeType: "application/json" }
-            });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            let text = response.text();
 
-            const responseText = result.text;
-            if (!responseText) throw new Error("No se generó contenido");
+            // Clean markdown code blocks if present (e.g. ```json ... ```)
+            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
-            const aiData = JSON.parse(responseText);
+            let aiData;
+            try {
+                aiData = JSON.parse(text);
+            } catch (e) {
+                console.error("Error parsing JSON:", text);
+                throw new Error("La IA generó una respuesta con formato inválido.");
+            }
+
+            // Validate data
+            const title = aiData.title || aiData.Title || "Consejo del Día";
+            const content = aiData.content || aiData.Content || text; // Fallback to raw text if content missing
 
             // 2. Insert into Supabase
             const newPost = {
-                title: aiData.title,
-                content: aiData.content,
+                title: title,
+                content: content,
                 author: 'Parental AI',
-                // Placeholder image or use an image generation API in the future
-                image_url: `https://source.unsplash.com/800x600/?parenting,baby,family&sig=${Date.now()}`
+                // Placeholder image based on keywords from title
+                image_url: `https://source.unsplash.com/800x600/?parenting,${encodeURIComponent(title.split(' ')[0])}&sig=${Date.now()}`
             };
 
             const { error: dbError } = await supabase
@@ -92,7 +103,7 @@ const Blog: React.FC = () => {
 
         } catch (err: any) {
             console.error('Error generating post:', err);
-            setError(err.message || 'Error generando el post');
+            setError(err.message || 'Error generando el post. Verifica tu API Key.');
         } finally {
             setIsGenerating(false);
         }
