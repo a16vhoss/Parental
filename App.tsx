@@ -104,9 +104,19 @@ const AppContent: React.FC = () => {
 
   const handleAddMember = async (newMember: FamilyMember) => {
     try {
+      if (!userId) {
+        throw new Error('No user ID found');
+      }
+
+      // Add user_id to the object before saving
+      const memberToSave = {
+        ...newMember,
+        user_id: userId
+      };
+
       const { data, error } = await supabase
         .from('family_members')
-        .insert([newMember])
+        .insert([memberToSave])
         .select();
 
       if (error) {
