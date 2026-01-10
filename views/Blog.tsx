@@ -32,7 +32,26 @@ const Blog: React.FC = () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setPosts(data || []);
+
+            const postsData = data || [];
+            setPosts(postsData);
+
+            // AUTOMATION: Check if we need to generate a post for today
+            // Only run this check if we are not already generating
+            if (postsData.length > 0) {
+                const latestPostDate = new Date(postsData[0].created_at).toDateString();
+                const today = new Date().toDateString();
+
+                if (latestPostDate !== today) {
+                    console.log("No blog post for today. Auto-generating...");
+                    handleGenerateDailyPost();
+                }
+            } else {
+                // No posts at all, generate the first one
+                console.log("No posts found. Auto-generating first post...");
+                handleGenerateDailyPost();
+            }
+
         } catch (err: any) {
             console.error('Error fetching posts:', err);
             // Don't show error immediately as table might not exist yet
@@ -141,19 +160,6 @@ const Blog: React.FC = () => {
                         <h1 className="text-2xl font-black text-text-main dark:text-white tracking-tight">
                             Blog Parental
                         </h1>
-                        <button
-                            onClick={handleGenerateDailyPost}
-                            disabled={isGenerating}
-                            className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-bold hover:bg-primary/20 transition-colors disabled:opacity-50 flex items-center gap-1"
-                            title="Simular Automatización Diaria"
-                        >
-                            {isGenerating ? (
-                                <span className="material-symbols-outlined text-sm animate-spin">refresh</span>
-                            ) : (
-                                <span className="material-symbols-outlined text-sm">auto_awesome</span>
-                            )}
-                            {isGenerating ? 'Generando...' : 'Generar Post'}
-                        </button>
                     </div>
                     <p className="text-xs text-gray-400 font-medium">Consejos diarios impulsados por IA</p>
 
