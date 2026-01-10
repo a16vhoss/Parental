@@ -288,6 +288,7 @@ const AppContent: React.FC = () => {
                     supportedAlerts: supportedAlerts,
                     directoryReviews: directoryReviews
                   }}
+                  childrenList={family}
                   onProfileUpdate={refreshSession}
                   onNavigateToSettings={() => navigate('/configuracion')}
                 />

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { FamilyMember } from '../types';
 
 interface UserProfileProps {
   userName: string;
@@ -15,6 +16,7 @@ interface UserProfileProps {
     supportedAlerts: number;
     directoryReviews: number;
   };
+  childrenList?: FamilyMember[];
   onProfileUpdate?: () => void;
   onNavigateToSettings: () => void;
 }
@@ -28,6 +30,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   userPhone,
   userLocation,
   stats = { membersCount: 0, supportedAlerts: 0, directoryReviews: 0 },
+  childrenList = [],
   onProfileUpdate,
   onNavigateToSettings
 }) => {
@@ -232,6 +235,29 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 <span className="text-sm font-medium text-[#678380]">Reseñas en directorio</span>
                 <span className="font-bold text-primary">{stats.directoryReviews}</span>
               </div>
+            </div>
+          </div>
+
+          {/* Family Section */}
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm">
+            <h3 className="font-bold text-sm uppercase tracking-wider text-gray-400 mb-4">Mi Círculo</h3>
+            <div className="space-y-3">
+              {childrenList.length > 0 ? (
+                childrenList.map((member) => (
+                  <div key={member.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm ${member.role === 'Hijo/a' ? 'bg-indigo-400' : 'bg-emerald-400'
+                      }`}>
+                      {member.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-bold text-[#121716] dark:text-white truncate">{member.name}</span>
+                      <span className="text-[10px] uppercase font-bold text-[#678380] dark:text-gray-400">{member.role}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-400 italic">No has agregado familiares aún.</p>
+              )}
             </div>
           </div>
         </div>

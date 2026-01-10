@@ -15,7 +15,7 @@ const MobileNav: React.FC = () => {
         { path: '/directorio', label: 'Directorio', icon: 'health_and_safety' },
         { path: '/alerta', label: 'Alerta', icon: 'emergency_home', isSpecial: true },
         { path: '/blog', label: 'Blog', icon: 'auto_stories' },
-        { path: '/configuracion', label: 'Ajustes', icon: 'settings' },
+        { path: '/perfil', label: 'Mi Cuenta', icon: 'person' },
     ];
 
     return (
@@ -42,8 +42,8 @@ const MobileNav: React.FC = () => {
                             key={item.path}
                             to={item.path}
                             className={`flex flex-col items-center justify-center w-16 h-full transition-colors ${isActive(item.path)
-                                    ? 'text-primary'
-                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                                ? 'text-primary'
+                                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                                 }`}
                         >
                             <span className={`material-symbols-outlined text-2xl mb-0.5 ${isActive(item.path) ? 'icon-filled' : ''}`}>
