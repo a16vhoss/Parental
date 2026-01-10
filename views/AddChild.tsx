@@ -166,7 +166,7 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) =
           {formData.role === 'Hijo/a' && (
             <>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Peso (kg)</label>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Peso Actual (kg)</label>
                 <input
                   type="number"
                   step="0.1"
@@ -178,13 +178,67 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) =
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Talla (cm)</label>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Talla Actual (cm)</label>
                 <input
                   type="number"
                   name="height"
                   value={formData.height}
                   onChange={handleChange}
                   placeholder="Ej. 50"
+                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                />
+              </div>
+
+              <div className="col-span-1 md:col-span-2 mt-2 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-bold text-[#121716] dark:text-white flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-primary text-lg">auto_stories</span>
+                  Detalles para "Mi Historia"
+                </h3>
+                <p className="text-xs text-gray-500 mb-4">Completa estos datos para generar la historia de nacimiento.</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Peso al Nacer (kg)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  name="birthWeight"
+                  value={formData.birthWeight}
+                  onChange={handleChange}
+                  placeholder="Ej. 3.2"
+                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Talla al Nacer (cm)</label>
+                <input
+                  type="number"
+                  name="birthHeight"
+                  value={formData.birthHeight}
+                  onChange={handleChange}
+                  placeholder="Ej. 48"
+                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ciudad de Nacimiento</label>
+                <input
+                  type="text"
+                  name="birthCity"
+                  value={formData.birthCity}
+                  onChange={handleChange}
+                  placeholder="Ej. Madrid"
+                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">País de Nacimiento</label>
+                <input
+                  type="text"
+                  name="birthCountry"
+                  value={formData.birthCountry}
+                  onChange={handleChange}
+                  placeholder="Ej. España"
                   className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
