@@ -108,9 +108,13 @@ const AppContent: React.FC = () => {
         throw new Error('No user ID found');
       }
 
+      // Remove temporary ID (timestamp) so Supabase generates a real UUID
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...memberData } = newMember;
+
       // Add user_id to the object before saving
       const memberToSave = {
-        ...newMember,
+        ...memberData,
         user_id: userId
       };
 
