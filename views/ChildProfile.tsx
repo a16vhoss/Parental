@@ -72,7 +72,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
 
   const handleSaveMetrics = () => {
     if (!newWeight || !newHeight) return;
-    
+
     const updatedChild = {
       ...child,
       vitals: {
@@ -82,7 +82,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
       },
       status: '📈 Métricas actualizadas'
     };
-    
+
     onUpdateChild(updatedChild);
     setShowLogModal(false);
     setNewWeight('');
@@ -92,10 +92,10 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
   if (!child) return <div className="p-10">Niño no encontrado.</div>;
 
   return (
-    <main className="flex-grow p-4 md:p-8 lg:px-12 max-w-[1400px] mx-auto w-full relative">
+    <main className="flex-grow p-4 md:p-8 lg:px-12 pb-28 lg:pb-12 max-w-[1400px] mx-auto w-full relative">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <button 
+          <button
             onClick={onBack}
             className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2 hover:text-primary transition-colors"
           >
@@ -110,13 +110,13 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
           <h1 className="text-3xl font-bold text-[#121716] dark:text-white">Perfil de {child.name.split(' ')[0]}</h1>
         </div>
         <div className="flex gap-3">
-          <button 
+          <button
             onClick={handleShare}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 hover:bg-gray-50 text-sm font-bold shadow-sm transition-all active:scale-95"
           >
             <span className="material-symbols-outlined text-[20px]">share</span> Compartir
           </button>
-          <button 
+          <button
             onClick={() => setShowLogModal(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 text-sm font-bold active:scale-95"
           >
@@ -130,7 +130,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm relative overflow-hidden group border border-gray-100 dark:border-gray-800">
             <div className={`absolute top-0 left-0 w-full h-24 bg-gradient-to-r ${child.vitals.sex === 'Male' ? 'from-blue-500/10 to-primary/20' : 'from-primary/10 to-accent-peach/20'}`}></div>
             <div className="relative flex flex-col items-center mt-4 text-center">
-              <img 
+              <img
                 src={child.avatar}
                 alt={child.name}
                 className="h-32 w-32 rounded-full border-4 border-white dark:border-surface-dark shadow-md object-cover transition-transform group-hover:scale-105 duration-500"
@@ -151,11 +151,11 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
               <div className="bg-background-light dark:bg-background-dark rounded-xl p-4 border border-gray-100 dark:border-gray-700 transition-transform hover:scale-[1.02]">
                 <p className="text-gray-500 text-xs font-medium uppercase mb-1">Peso</p>
                 {/* Added null safety for weight and height display */}
-                <p className="text-2xl font-bold text-primary">{child.vitals.weight?.replace('kg','') || '--'} <span className="text-sm font-normal text-gray-500">kg</span></p>
+                <p className="text-2xl font-bold text-primary">{child.vitals.weight?.replace('kg', '') || '--'} <span className="text-sm font-normal text-gray-500">kg</span></p>
               </div>
               <div className="bg-background-light dark:bg-background-dark rounded-xl p-4 border border-gray-100 dark:border-gray-700 transition-transform hover:scale-[1.02]">
                 <p className="text-gray-500 text-xs font-medium uppercase mb-1">Talla</p>
-                <p className="text-2xl font-bold text-primary">{child.vitals.height?.replace('cm','') || '--'} <span className="text-sm font-normal text-gray-500">cm</span></p>
+                <p className="text-2xl font-bold text-primary">{child.vitals.height?.replace('cm', '') || '--'} <span className="text-sm font-normal text-gray-500">cm</span></p>
               </div>
               <div className="bg-background-light dark:bg-background-dark rounded-xl p-4 border border-gray-100 dark:border-gray-700">
                 <p className="text-gray-500 text-xs font-medium uppercase mb-1">Sangre</p>
@@ -172,11 +172,11 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
         <div className="lg:col-span-8 flex flex-col gap-6">
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 relative">
             <h3 className="text-lg font-bold mb-6 text-[#121716] dark:text-white">Seguimiento de Crecimiento</h3>
-            
+
             <div className="h-64 w-full relative flex items-end justify-between px-2 gap-4 border-b border-gray-50 dark:border-gray-800/50 pb-2">
               {history.map((point, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className="flex-1 group relative flex flex-col items-center h-full justify-end"
                   onMouseEnter={() => setHoveredPoint(i)}
                   onMouseLeave={() => setHoveredPoint(null)}
@@ -203,26 +203,25 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
 
                   {/* Barra interactiva con efecto de "punto" marcador */}
                   <div className="relative w-full h-full flex flex-col justify-end items-center group/bar">
-                    <div 
-                      style={{height: `${point.heightPercent}%`}} 
-                      className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 ease-out cursor-pointer relative ${
-                        hoveredPoint === i 
-                          ? 'bg-primary scale-x-110 -translate-y-1 shadow-[0_-10px_20px_-5px_rgba(42,157,144,0.4)]' 
+                    <div
+                      style={{ height: `${point.heightPercent}%` }}
+                      className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 ease-out cursor-pointer relative ${hoveredPoint === i
+                          ? 'bg-primary scale-x-110 -translate-y-1 shadow-[0_-10px_20px_-5px_rgba(42,157,144,0.4)]'
                           : (i === history.length - 1 ? 'bg-primary opacity-90' : 'bg-primary/20 dark:bg-primary/10 hover:bg-primary/40')
-                      }`}
+                        }`}
                     >
                       {/* El "Punto" del gráfico que aparece al hacer hover */}
                       <div className={`absolute -top-1 left-1/2 -translate-x-1/2 size-3 rounded-full border-2 border-white dark:border-surface-dark bg-primary shadow-md transition-all duration-300 ${hoveredPoint === i ? 'scale-125 opacity-100 -translate-y-1' : 'scale-50 opacity-0 group-hover/bar:opacity-100 group-hover/bar:scale-100'}`}></div>
                     </div>
                   </div>
-                  
+
                   <span className={`mt-4 text-[10px] font-bold transition-all duration-300 ${hoveredPoint === i ? 'text-primary scale-110' : 'text-gray-400'}`}>
                     {point.month}
                   </span>
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-6 flex gap-6">
               <div className="flex items-center gap-2">
                 <div className="size-3 rounded-full bg-primary"></div>
@@ -239,7 +238,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
             <h3 className="text-xl font-bold mb-8 text-[#121716] dark:text-white">Hitos de Desarrollo</h3>
             <div className="space-y-8 relative">
               <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-100 dark:bg-gray-800"></div>
-              
+
               <div className="flex gap-6 group relative">
                 <div className={`h-12 w-12 rounded-full flex items-center justify-center text-white shrink-0 z-10 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ${child.vitals.sex === 'Male' ? 'bg-blue-400 group-hover:shadow-blue-400/20' : 'bg-accent-peach group-hover:shadow-accent-peach/20'}`}>
                   <span className="material-symbols-outlined">dentistry</span>
@@ -264,39 +263,39 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
               <h3 className="text-xl font-bold text-[#121716] dark:text-white">Registrar Métricas</h3>
               <button onClick={() => setShowLogModal(false)} className="text-gray-400 hover:text-gray-600"><span className="material-symbols-outlined">close</span></button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Nuevo Peso (kg)</label>
-                <input 
-                  type="number" 
-                  step="0.1" 
+                <input
+                  type="number"
+                  step="0.1"
                   value={newWeight}
                   onChange={(e) => setNewWeight(e.target.value)}
                   placeholder="Ej. 8.7"
-                  className="w-full p-3 bg-gray-50 dark:bg-background-dark border-none rounded-xl focus:ring-2 focus:ring-primary" 
+                  className="w-full p-3 bg-gray-50 dark:bg-background-dark border-none rounded-xl focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Nueva Talla (cm)</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   value={newHeight}
                   onChange={(e) => setNewHeight(e.target.value)}
                   placeholder="Ej. 74"
-                  className="w-full p-3 bg-gray-50 dark:bg-background-dark border-none rounded-xl focus:ring-2 focus:ring-primary" 
+                  className="w-full p-3 bg-gray-50 dark:bg-background-dark border-none rounded-xl focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
 
             <div className="mt-8 flex gap-3">
-              <button 
+              <button
                 onClick={() => setShowLogModal(false)}
                 className="flex-1 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 onClick={handleSaveMetrics}
                 className="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all"
               >

@@ -175,7 +175,7 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
   };
 
   return (
-    <main className="flex-grow p-4 md:p-8 lg:px-12 max-w-[800px] mx-auto w-full">
+    <main className="flex-grow p-4 md:p-8 lg:px-12 pb-28 lg:pb-12 max-w-[800px] mx-auto w-full">
       <div className="flex items-center gap-4 mb-8">
         <button
           onClick={onBack}

@@ -147,7 +147,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
   };
 
   return (
-    <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-10 w-full scroll-smooth bg-background-light dark:bg-background-dark" onClick={() => setShowNotifications(false)}>
+    <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-10 pb-28 lg:pb-10 w-full scroll-smooth bg-background-light dark:bg-background-dark" onClick={() => setShowNotifications(false)}>
       <div className="max-w-[800px] mx-auto flex flex-col gap-10">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative">
           <div className="flex flex-col gap-2 w-full">

@@ -172,7 +172,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const avatarSrc = userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
 
   return (
-    <main className="flex-grow p-4 md:p-8 lg:px-12 max-w-[1000px] mx-auto w-full">
+    <main className="flex-grow p-4 md:p-8 lg:px-12 pb-28 lg:pb-12 max-w-[1000px] mx-auto w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-black text-[#121716] dark:text-white tracking-tight">Mi Cuenta</h1>
