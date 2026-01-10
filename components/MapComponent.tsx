@@ -89,7 +89,7 @@ const MapOrchestrator: React.FC<{
 
         const request: google.maps.places.PlaceSearchRequest = {
             location: userLocation,
-            radius: 5000, // 5km search radius
+            radius: 15000, // 15km search radius
             keyword: keyword,
             type: type
         };
