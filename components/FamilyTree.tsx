@@ -65,7 +65,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMem
                 <span className="material-symbols-outlined text-primary">diversity_2</span> Árbol Familiar
             </h3>
 
-            <div className="min-w-[500px] flex flex-col items-center relative py-4">
+            <div className="min-w-[500px] mx-auto flex flex-col items-center relative py-4">
 
                 {/* Connector Lines Logic - Simplified for 3 levels */}
 
