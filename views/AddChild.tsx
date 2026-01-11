@@ -149,7 +149,7 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) =
             <input
               type="date"
               name="dob"
-              value={formData.dob}
+              value={formData.dob ? formData.dob.split('T')[0] : ''}
               onChange={handleChange}
               className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
             />
