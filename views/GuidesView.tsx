@@ -1,5 +1,5 @@
 // GuidesView - Main view listing all guides relevant to user's children
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FamilyMember } from '../types';
 import { STAGES, GuideWithChildren } from '../types/guidesTypes';

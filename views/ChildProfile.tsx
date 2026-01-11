@@ -104,7 +104,71 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
     }
   };
 
+  // Fetch Vitals History
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!childId) return;
+      const { data } = await supabase
+        .from('child_vitals_history')
+        .select('*')
+        .eq('child_id', childId)
+        .order('recorded_at', { ascending: false }); // Newest first
+
+      if (data) setVitalsHistory(data);
+    };
+
+    if (activeTab === 'growth') {
+      fetchHistory();
+    }
+  }, [childId, activeTab]);
+
+  const handleSaveMeasurement = async () => {
+    if (!childId || (!newWeight && !newHeight)) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase.from('child_vitals_history').insert({
+        child_id: childId,
+        weight: newWeight ? parseFloat(newWeight) : null,
+        height: newHeight ? parseFloat(newHeight) : null,
+        recorded_by: user.id
+      });
+
+      if (error) throw error;
+
+      // Update local state
+      const newRecord = {
+        id: Date.now(), // temp id
+        child_id: childId,
+        weight: newWeight ? parseFloat(newWeight) : null,
+        height: newHeight ? parseFloat(newHeight) : null,
+        recorded_at: new Date().toISOString()
+      };
+      setVitalsHistory([newRecord, ...vitalsHistory]);
+
+      // Log activity
+      await logActivity({
+        actionType: 'HEALTH_LOG',
+        description: `Registró medición: ${newWeight ? newWeight + 'kg' : ''} ${newHeight ? newHeight + 'cm' : ''}`,
+        entityId: childId,
+        entityType: 'child'
+      });
+
+      // Update current vitals in profile (optional but good)
+      // This would require a separate update call to 'vitals' column in family_members
+
+      setShowMeasureModal(false);
+      setNewWeight('');
+      setNewHeight('');
+    } catch (err) {
+      console.error("Error saving measurement:", err);
+    }
+  };
+
   const handleToggleAlert = async () => {
+    // ... existing toggle alert logic
     if (activeAlertId) {
       // MARK AS FOUND -> Validate pin or just confirm
       if (window.confirm('¿Confirmas que el niño ha sido localizado? Esto desactivará la alerta inmediatamente.')) {
