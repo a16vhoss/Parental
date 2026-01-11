@@ -85,17 +85,20 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
   useEffect(() => {
     const fetchNotifications = async () => {
       // 1. Fetch Active Alerts
-      const { data: alerts } = await supabase
+      // Try simple fetch first to avoid RLS issues on joins
+      const { data: alerts, error } = await supabase
         .from('amber_alerts')
-        .select('*')
+        .select('*') // No joins for notifications to be safe
         .eq('status', 'active')
         .limit(5);
+
+      if (error) console.error('Error fetching dashboard alerts:', error);
 
       const alertNotifs = alerts?.map(a => ({
         id: a.id,
         type: 'alert',
         title: 'ALERTA AMBER ACTIVA',
-        desc: `Alerta activa en tu zona. Ayuda a encontrar a ${a.child_id ? 'un niño' : 'alguien'}.`,
+        desc: `Alerta activa. Revisa en 'Alertas' para más detalles.`,
         time: 'AHORA',
         icon: 'emergency_home',
         color: 'text-red-500 bg-red-50',

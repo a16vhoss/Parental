@@ -58,10 +58,33 @@ const AlertsFeed: React.FC = () => {
                 .eq('status', 'active')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            console.log('Alerts Feed Fetch Result:', { data, error });
 
-            if (data) {
+            if (error) {
+                console.error('Database Error:', error);
+                throw error;
+            }
+
+            if (data && data.length > 0) {
                 setAlerts(data as any as AlertWithChild[]);
+            } else {
+                console.log('No active alerts with joined data found. Trying raw fetch...');
+                // Fallback: Fetch without joins to see if RLS is hiding relations
+                const { data: rawData, error: rawError } = await supabase
+                    .from('amber_alerts')
+                    .select('*')
+                    .eq('status', 'active')
+                    .order('created_at', { ascending: false });
+
+                if (rawData && rawData.length > 0) {
+                    console.log('Found Raw Alerts:', rawData);
+                    // Map to expected structure with placeholders
+                    setAlerts(rawData.map((a: any) => ({
+                        ...a,
+                        child: { name: 'Niño(a)', age: '?', avatar: null },
+                        reporter: { full_name: 'Usuario' }
+                    })));
+                }
             }
         } catch (err) {
             console.error('Error fetching alerts:', err);
@@ -141,9 +164,9 @@ const AlertsFeed: React.FC = () => {
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <h3 className="text-xl font-black text-[#121716] dark:text-white leading-tight mb-1">
-                                            {alert.child?.name?.split(' ')[0] || 'Desconocido'}
+                                            {alert.child?.name?.split(' ')[0] || 'Niño(a) Desaparecido(a)'}
                                         </h3>
-                                        <p className="text-primary font-bold text-xs uppercase tracking-widest">{alert.child?.age || '?'} años</p>
+                                        <p className="text-primary font-bold text-xs uppercase tracking-widest">{alert.child?.age || 'Edad desconocida'}</p>
                                     </div>
                                     {alert.child?.avatar && (
                                         <img src={alert.child.avatar} alt="child" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md" />
