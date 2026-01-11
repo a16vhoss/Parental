@@ -136,24 +136,31 @@ const AlertDetails: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <a
-                            href={`tel:${alert.reporter?.phone}`}
-                            className="bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-200 dark:shadow-none"
-                        >
-                            <span className="material-symbols-outlined filled">call</span>
-                            LLAMAR AHORA
-                        </a>
-                        <a
-                            href={`https://wa.me/52${alert.reporter?.phone?.replace(/\D/g, '')}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="bg-[#25D366] text-white font-bold py-4 rounded-xl hover:bg-[#20bd5a] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-200 dark:shadow-none"
-                        >
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-6 h-6 brightness-0 invert" alt="WhatsApp" />
-                            WHATSAPP
-                        </a>
-                    </div>
+                    {alert.reporter?.phone ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <a
+                                href={`tel:${alert.reporter?.phone}`}
+                                className="bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-200 dark:shadow-none"
+                            >
+                                <span className="material-symbols-outlined filled">call</span>
+                                LLAMAR AHORA
+                            </a>
+                            <a
+                                href={`https://wa.me/52${alert.reporter?.phone?.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="bg-[#25D366] text-white font-bold py-4 rounded-xl hover:bg-[#20bd5a] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-200 dark:shadow-none"
+                            >
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-6 h-6 brightness-0 invert" alt="WhatsApp" />
+                                WHATSAPP
+                            </a>
+                        </div>
+                    ) : (
+                        <div className="bg-orange-50 dark:bg-orange-900/10 p-4 rounded-xl text-center text-orange-600 dark:text-orange-400 font-bold border border-orange-100 dark:border-orange-800">
+                            <span className="material-symbols-outlined block mb-1">phonelink_erase</span>
+                            Número de contacto no disponible.
+                        </div>
+                    )}
 
                     <p className="text-xs text-center text-gray-400 mt-6">
                         Si tienes información visual, marca inmediatamente o envía ubicación por WhatsApp.
