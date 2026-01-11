@@ -178,6 +178,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
         onProfileUpdate();
       }
 
+      await logActivity({
+        actionType: 'PROFILE_UPDATED',
+        description: 'Actualizó su información de perfil',
+        entityId: userId,
+        entityType: 'family'
+      });
+
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {

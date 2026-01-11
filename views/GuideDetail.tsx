@@ -30,19 +30,8 @@ const parseAgeToMonths = (ageStr: string, dob?: string): number => {
     return 0;
 };
 
-// LocalStorage helpers
-const getStoredProgress = (stageId: string) => {
-    try {
-        const stored = localStorage.getItem(`guide_progress_${stageId}`);
-        return stored ? JSON.parse(stored) : { completed: [], favorites: [] };
-    } catch {
-        return { completed: [], favorites: [] };
-    }
-};
-
-const saveProgress = (stageId: string, data: { completed: string[], favorites: string[] }) => {
-    localStorage.setItem(`guide_progress_${stageId}`, JSON.stringify(data));
-};
+// Supabase helpers
+import { supabase } from '../lib/supabase';
 
 const GuideDetail: React.FC<GuideDetailProps> = ({ childrenList }) => {
     const { stageId } = useParams<{ stageId: string }>();
@@ -70,11 +59,32 @@ const GuideDetail: React.FC<GuideDetailProps> = ({ childrenList }) => {
             .filter(c => c.ageMonths >= stage.minMonths && c.ageMonths < stage.maxMonths);
     }, [stage, children]);
 
-    // Load progress on mount
+    // Load progress from Supabase
     useEffect(() => {
-        if (stageId) {
-            setProgress(getStoredProgress(stageId));
-        }
+        const loadProgress = async () => {
+            if (!stageId) return;
+
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data, error } = await supabase
+                .from('user_guide_progress')
+                .select('module_id, completed_at, is_favorite')
+                .eq('stage_id', stageId)
+                .eq('user_id', user.id);
+
+            if (error) {
+                console.error('Error loading progress:', error);
+                return;
+            }
+
+            if (data) {
+                const completed = data.filter(r => r.completed_at).map(r => r.module_id);
+                const favorites = data.filter(r => r.is_favorite).map(r => r.module_id);
+                setProgress({ completed, favorites });
+            }
+        };
+        loadProgress();
     }, [stageId]);
 
     // Filter modules
@@ -91,15 +101,32 @@ const GuideDetail: React.FC<GuideDetailProps> = ({ childrenList }) => {
     }, [modules, progress, filter]);
 
     // Toggle favorite
-    const handleToggleFavorite = (moduleId: string, e: React.MouseEvent) => {
+    const handleToggleFavorite = async (moduleId: string, e: React.MouseEvent) => {
         e.stopPropagation();
+
+        // Optimistic update
         const newFavorites = progress.favorites.includes(moduleId)
             ? progress.favorites.filter(id => id !== moduleId)
             : [...progress.favorites, moduleId];
 
-        const newProgress = { ...progress, favorites: newFavorites };
-        setProgress(newProgress);
-        if (stageId) saveProgress(stageId, newProgress);
+        setProgress(prev => ({ ...prev, favorites: newFavorites }));
+
+        // DB Update
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || !stageId) return;
+
+        const isFav = newFavorites.includes(moduleId);
+
+        const { error } = await supabase
+            .from('user_guide_progress')
+            .upsert({
+                user_id: user.id,
+                module_id: moduleId,
+                stage_id: stageId,
+                is_favorite: isFav
+            }, { onConflict: 'user_id, module_id' }); // Conflict on PK
+
+        if (error) console.error('Error updating favorite:', error);
     };
 
     // Calculate progress percentage

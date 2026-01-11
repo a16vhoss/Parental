@@ -35,29 +35,54 @@ const parseAgeToMonths = (ageStr: string, dob?: string): number => {
     return 0;
 };
 
-// Get saved progress from localStorage
-const getProgress = (stageId: string): { completed: string[], favorites: string[] } => {
-    try {
-        const stored = localStorage.getItem(`guide_progress_${stageId}`);
-        return stored ? JSON.parse(stored) : { completed: [], favorites: [] };
-    } catch {
-        return { completed: [], favorites: [] };
-    }
-};
+// Supabase
+import { supabase } from '../lib/supabase';
 
 const GuidesView: React.FC<GuidesViewProps> = ({ childrenList, onAddChild }) => {
     const navigate = useNavigate();
     const [filterCategory, setFilterCategory] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
 
+    // State for progress data: Map of stageId -> { completed: number }
+    const [progressMap, setProgressMap] = useState<Record<string, { completed: number }>>({});
+
     // Get children only (Hijo/a role)
     const children = childrenList.filter(m => m.role === 'Hijo/a');
+
+    // Fetch all progress once
+    useEffect(() => {
+        const fetchProgress = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // Get counts of completed modules per stage
+            const { data, error } = await supabase
+                .from('user_guide_progress')
+                .select('stage_id, module_id')
+                .eq('user_id', user.id)
+                .not('completed_at', 'is', null);
+
+            if (error) {
+                console.error('Error fetching progress:', error);
+                return;
+            }
+
+            // Group by stage
+            const newMap: Record<string, { completed: number }> = {};
+            data?.forEach(row => {
+                if (!newMap[row.stage_id]) newMap[row.stage_id] = { completed: 0 };
+                newMap[row.stage_id].completed++;
+            });
+            setProgressMap(newMap);
+        };
+        fetchProgress();
+    }, []);
 
     // Build guides with applicable children and progress
     const guidesWithData = useMemo((): GuideWithChildren[] => {
         return STAGES.map(stage => {
             const modules = getModulesByStage(stage.id);
-            const progress = getProgress(stage.id);
+            const stageProgress = progressMap[stage.id] || { completed: 0 };
 
             // Find children in this age range
             const applicableChildren = children
@@ -73,13 +98,13 @@ const GuidesView: React.FC<GuidesViewProps> = ({ childrenList, onAddChild }) => 
                 modules,
                 applicableChildren,
                 progress: {
-                    completed: progress.completed.length,
+                    completed: stageProgress.completed,
                     total: modules.length,
-                    percentage: modules.length > 0 ? Math.round((progress.completed.length / modules.length) * 100) : 0
+                    percentage: modules.length > 0 ? Math.round((stageProgress.completed / modules.length) * 100) : 0
                 }
             };
         });
-    }, [children]);
+    }, [children, progressMap]);
 
     // Filter guides - prioritize those with applicable children
     const filteredGuides = useMemo(() => {

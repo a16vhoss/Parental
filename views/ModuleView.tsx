@@ -5,20 +5,12 @@ import { STAGES } from '../types/guidesTypes';
 import { ALL_GUIDE_MODULES } from '../data/guidesData';
 import InteractiveChecklist from '../components/InteractiveChecklist';
 
-// LocalStorage helpers
-const getStoredProgress = (stageId: string) => {
-    try {
-        const stored = localStorage.getItem(`guide_progress_${stageId}`);
-        return stored ? JSON.parse(stored) : { completed: [], favorites: [] };
-    } catch {
-        return { completed: [], favorites: [] };
-    }
-};
+// Supabase helpers
+import { supabase } from '../lib/supabase';
+import { useLogger } from '../hooks/useLogger';
 
-const saveProgress = (stageId: string, data: { completed: string[], favorites: string[] }) => {
-    localStorage.setItem(`guide_progress_${stageId}`, JSON.stringify(data));
-};
-
+// Checklist storage can remain local for now as it's granular, or moving it to DB would require a JSONB column. 
+// For simplicity in this phase, we keep checklist local, but sync completion to DB.
 const getChecklistState = (moduleId: string): Record<string, boolean> => {
     try {
         const stored = localStorage.getItem(`checklist_${moduleId}`);
@@ -35,6 +27,7 @@ const saveChecklistState = (moduleId: string, state: Record<string, boolean>) =>
 const ModuleView: React.FC = () => {
     const { stageId, moduleId } = useParams<{ stageId: string; moduleId: string }>();
     const navigate = useNavigate();
+    const { logActivity } = useLogger();
 
     const [isCompleted, setIsCompleted] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
@@ -54,38 +47,82 @@ const ModuleView: React.FC = () => {
 
     // Load saved state on mount
     useEffect(() => {
-        if (stageId && moduleId) {
-            const progress = getStoredProgress(stageId);
-            setIsCompleted(progress.completed.includes(moduleId));
-            setIsFavorite(progress.favorites.includes(moduleId));
-            setChecklistState(getChecklistState(moduleId));
-        }
+        const loadState = async () => {
+            if (stageId && moduleId) {
+                // Checklist local
+                setChecklistState(getChecklistState(moduleId));
+
+                // DB Progress
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+
+                const { data } = await supabase
+                    .from('user_guide_progress')
+                    .select('completed_at, is_favorite')
+                    .eq('user_id', user.id)
+                    .eq('module_id', moduleId)
+                    .single();
+
+                if (data) {
+                    setIsCompleted(!!data.completed_at);
+                    setIsFavorite(!!data.is_favorite);
+                }
+            }
+        };
+        loadState();
     }, [stageId, moduleId]);
 
     // Toggle completed
-    const handleToggleCompleted = () => {
+    const handleToggleCompleted = async () => {
         if (!stageId || !moduleId) return;
 
-        const progress = getStoredProgress(stageId);
-        const newCompleted = isCompleted
-            ? progress.completed.filter((id: string) => id !== moduleId)
-            : [...progress.completed, moduleId];
+        const nextState = !isCompleted;
+        setIsCompleted(nextState); // Optimistic
 
-        saveProgress(stageId, { ...progress, completed: newCompleted });
-        setIsCompleted(!isCompleted);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { error } = await supabase
+            .from('user_guide_progress')
+            .upsert({
+                user_id: user.id,
+                module_id: moduleId,
+                stage_id: stageId,
+                completed_at: nextState ? new Date().toISOString() : null
+            }, { onConflict: 'user_id, module_id' });
+
+        if (error) console.error('Error saving completion:', error);
+
+        if (nextState) {
+            await logActivity({
+                actionType: 'GUIDE_COMPLETED',
+                description: `Completó el módulo: ${module?.title}`,
+                entityId: moduleId,
+                entityType: 'guide'
+            });
+        }
     };
 
     // Toggle favorite
-    const handleToggleFavorite = () => {
+    const handleToggleFavorite = async () => {
         if (!stageId || !moduleId) return;
 
-        const progress = getStoredProgress(stageId);
-        const newFavorites = isFavorite
-            ? progress.favorites.filter((id: string) => id !== moduleId)
-            : [...progress.favorites, moduleId];
+        const nextState = !isFavorite;
+        setIsFavorite(nextState); // Optimistic
 
-        saveProgress(stageId, { ...progress, favorites: newFavorites });
-        setIsFavorite(!isFavorite);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { error } = await supabase
+            .from('user_guide_progress')
+            .upsert({
+                user_id: user.id,
+                module_id: moduleId,
+                stage_id: stageId,
+                is_favorite: nextState
+            }, { onConflict: 'user_id, module_id' });
+
+        if (error) console.error('Error saving favorite:', error);
     };
 
     // Handle checklist toggle
