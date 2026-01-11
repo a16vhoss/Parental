@@ -312,6 +312,7 @@ const AppContent: React.FC = () => {
                 <AddChild
                   onSave={handleAddMember}
                   onCancel={() => navigate('/familia')}
+                  userId={userId}
                 />
               </ProtectedRoute>
             } />
@@ -389,6 +390,7 @@ const AppContent: React.FC = () => {
                   setShowAddChild(false);
                   setEditingMember(undefined);
                 }}
+                userId={userId}
               />
             </div>
           </div>

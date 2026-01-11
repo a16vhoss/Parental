@@ -7,6 +7,7 @@ interface AddChildProps {
   memberToEdit?: FamilyMember;
   onSave: (member: FamilyMember) => void;
   onCancel: () => void;
+  userId?: string;
 }
 
 const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) => {
@@ -59,10 +60,12 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) =
       setIsUploading(true);
 
       // 1. Upload to Supabase Storage
-      // Using a generic 'members' folder or similar. Since we don't have auth user ID easily accessible here without prop drilling,
-      // we'll put it in a public 'members' folder or similar.
-      // Ideally we should use the user's ID, but for now we'll rely on unique filenames.
-      const filePath = `members/${fileName}`;
+      // Use userId to organize files and satisfy RLS policies (restricted to user's folder)
+      // If userId is missing (shouldn't happen in auth'd context), fall back to public 'members' folder but warn
+      const basePath = userId ? userId : 'anonymous';
+      const filePath = `${basePath}/${fileName}`;
+
+      console.log('Uploading avatar to:', filePath);
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
