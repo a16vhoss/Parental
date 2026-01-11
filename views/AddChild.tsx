@@ -112,8 +112,10 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
       ageValue = 'N/A';
     }
 
+    // For new members, don't set id - let Supabase generate UUID
+    // For edits, preserve the existing id
     const newMember: FamilyMember = {
-      id: memberToEdit?.id || Date.now().toString(),
+      ...(memberToEdit?.id ? { id: memberToEdit.id } : {}),
       name: formData.name,
       role: formData.role,
       age: ageValue,
@@ -126,12 +128,13 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
         bloodGroup: formData.bloodGroup,
         dob: formData.dob,
         sex: formData.sex,
-        birthWeight: formData.birthWeight,
-        birthHeight: formData.birthHeight,
-        birthCity: formData.birthCity,
-        birthCountry: formData.birthCountry
+        // Preserve birth data only on first save; on edit, use what's already saved
+        birthWeight: memberToEdit ? memberToEdit.vitals?.birthWeight : formData.birthWeight,
+        birthHeight: memberToEdit ? memberToEdit.vitals?.birthHeight : formData.birthHeight,
+        birthCity: memberToEdit ? memberToEdit.vitals?.birthCity : formData.birthCity,
+        birthCountry: memberToEdit ? memberToEdit.vitals?.birthCountry : formData.birthCountry
       }
-    };
+    } as FamilyMember;
     onSave(newMember);
   };
 
@@ -294,63 +297,64 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
                 />
               </div>
 
-              <div className="col-span-1 md:col-span-2 mt-2 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-bold text-[#121716] dark:text-white flex items-center gap-2 mb-1">
-                  <span className="material-symbols-outlined text-primary text-lg">auto_stories</span>
-                  Detalles para "Mi Historia"
-                </h3>
-                <p className="text-xs text-gray-500 mb-4">Completa estos datos para generar la historia de nacimiento.</p>
-              </div>
+              {/* Only show birth details section when ADDING new (not editing) */}
+              {!memberToEdit && (
+                <>
+                  <div className="col-span-1 md:col-span-2 mt-2 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-bold text-[#121716] dark:text-white flex items-center gap-2 mb-1">
+                      <span className="material-symbols-outlined text-primary text-lg">auto_stories</span>
+                      Detalles para "Mi Historia"
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-4">Completa estos datos para generar la historia de nacimiento.</p>
+                  </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Peso al Nacer (kg)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  name="birthWeight"
-                  value={formData.birthWeight}
-                  onChange={handleChange}
-                  disabled={!!memberToEdit}
-                  placeholder="Ej. 3.2"
-                  className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all ${memberToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Talla al Nacer (cm)</label>
-                <input
-                  type="number"
-                  name="birthHeight"
-                  value={formData.birthHeight}
-                  onChange={handleChange}
-                  disabled={!!memberToEdit}
-                  placeholder="Ej. 48"
-                  className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all ${memberToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ciudad de Nacimiento</label>
-                <input
-                  type="text"
-                  name="birthCity"
-                  value={formData.birthCity}
-                  onChange={handleChange}
-                  disabled={!!memberToEdit}
-                  placeholder="Ej. Madrid"
-                  className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all ${memberToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">País de Nacimiento</label>
-                <input
-                  type="text"
-                  name="birthCountry"
-                  value={formData.birthCountry}
-                  onChange={handleChange}
-                  disabled={!!memberToEdit}
-                  placeholder="Ej. España"
-                  className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all ${memberToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Peso al Nacer (kg)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      name="birthWeight"
+                      value={formData.birthWeight}
+                      onChange={handleChange}
+                      placeholder="Ej. 3.2"
+                      className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Talla al Nacer (cm)</label>
+                    <input
+                      type="number"
+                      name="birthHeight"
+                      value={formData.birthHeight}
+                      onChange={handleChange}
+                      placeholder="Ej. 48"
+                      className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ciudad de Nacimiento</label>
+                    <input
+                      type="text"
+                      name="birthCity"
+                      value={formData.birthCity}
+                      onChange={handleChange}
+                      placeholder="Ej. Madrid"
+                      className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">País de Nacimiento</label>
+                    <input
+                      type="text"
+                      name="birthCountry"
+                      value={formData.birthCountry}
+                      onChange={handleChange}
+                      placeholder="Ej. España"
+                      className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                    />
+                  </div>
+                </>
+              )}
             </>
           )}
 
