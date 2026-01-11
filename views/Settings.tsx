@@ -447,6 +447,29 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
           </div>
         </section>
 
+        {/* Logout Section */}
+        <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-red-100 dark:border-red-900/30">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-red-600">
+            <span className="material-symbols-outlined">logout</span>
+            {language === 'es' ? 'Cerrar Sesión' : 'Log Out'}
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {language === 'es' ? 'Tu información se mantendrá segura y podrás volver a iniciar sesión cuando quieras.' : 'Your information will remain safe and you can log back in anytime.'}
+          </p>
+          <button
+            onClick={async () => {
+              if (window.confirm(language === 'es' ? '¿Estás seguro de que quieres cerrar sesión?' : 'Are you sure you want to log out?')) {
+                await supabase.auth.signOut();
+                window.location.href = '/login';
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-md active:scale-95"
+          >
+            <span className="material-symbols-outlined">logout</span>
+            {language === 'es' ? 'Cerrar Sesión' : 'Log Out'}
+          </button>
+        </section>
+
         <section className="flex justify-end pt-4">
           <button
             onClick={() => alert(language === 'es' ? '¡Cambios guardados exitosamente!' : 'Changes saved successfully!')}
