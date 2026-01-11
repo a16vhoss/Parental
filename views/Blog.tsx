@@ -46,6 +46,15 @@ const Blog: React.FC = () => {
                 hasCheckedTodayRef.current = true;
 
                 const today = new Date().toDateString();
+                const lastCheck = localStorage.getItem('parental_blog_last_check');
+
+                // Client-side guard: If we already tried generating today (even if it failed or is in progress elsewhere), don't try again immediately.
+                // This prevents duplicates on page refresh or navigation.
+                if (lastCheck === today) {
+                    console.log("Already checked/generated for today (LocalStorage). Skipping.");
+                    return;
+                }
+
                 let needsGeneration = false;
 
                 if (postsData.length > 0) {
@@ -57,7 +66,12 @@ const Blog: React.FC = () => {
 
                 if (needsGeneration) {
                     console.log("No blog post for today. Triggering generation...");
+                    // Set guard immediately
+                    localStorage.setItem('parental_blog_last_check', today);
                     handleGenerateDailyPost();
+                } else {
+                    // If we have a post, mark today as checked so we don't re-check logic unnecessarily
+                    localStorage.setItem('parental_blog_last_check', today);
                 }
             }
 
@@ -179,6 +193,8 @@ const Blog: React.FC = () => {
         } catch (err: any) {
             console.error('Error generating post:', err);
             setError(err.message || 'Error generando el post. Verifica tu API Key.');
+            // Clear guard so we can retry if it was a genuine error
+            localStorage.removeItem('parental_blog_last_check');
         } finally {
             setIsGenerating(false);
             generationLockRef.current = false;
