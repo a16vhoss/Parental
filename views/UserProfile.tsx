@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { FamilyMember } from '../types';
+import { useLogger } from '../hooks/useLogger';
 
 interface UserProfileProps {
   userName: string;
@@ -51,6 +52,18 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { logActivity } = useLogger();
+
+  // Import logger hook locally or pass via props if preferred, but local is easier for refactor
+  // To avoid circular dependency issues if hooks are external, we assume useLogger is available
+  // But we need to import it. Let's add the import at the top first content modification
+  // For now, let's just pretend we imported it or use a Dynamic import if needed? 
+  // Easier to just add the import in a separate REPLACE block, but I can do it here if I am careful.
+  // Actually, I'll update the imports first.
+
+  // Wait, I can't double edit. I will handle imports in next step.
+  // I will just add the hook usage here assuming import exists.
+
 
   // Initialize state when props change
   useEffect(() => {

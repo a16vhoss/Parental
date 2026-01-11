@@ -11,9 +11,40 @@ interface FamilyViewProps {
   onDeleteMember?: (id: string) => void;
 }
 
+import { supabase } from '../lib/supabase';
+
+interface FamilyViewProps {
+  childrenList: FamilyMember[];
+  onViewChild: (id: string) => void;
+  onAddChild: () => void;
+  onEditMember?: (member: FamilyMember) => void;
+  onDeleteMember?: (id: string) => void;
+}
+
 const FamilyView: React.FC<FamilyViewProps> = ({ childrenList, onViewChild, onAddChild, onEditMember, onDeleteMember }) => {
   const children = childrenList.filter(m => m.role === 'Hijo/a');
   const others = childrenList.filter(m => m.role !== 'Hijo/a');
+
+  const [logs, setLogs] = React.useState<any[]>([]);
+  const [isLoadingLogs, setIsLoadingLogs] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const { data } = await supabase
+          .from('activity_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (data) setLogs(data);
+      } catch (e) {
+        console.error('Error loading logs', e);
+      } finally {
+        setIsLoadingLogs(false);
+      }
+    };
+    fetchLogs();
+  }, []);
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -177,27 +208,54 @@ const FamilyView: React.FC<FamilyViewProps> = ({ childrenList, onViewChild, onAd
       <section className="mt-16 bg-white dark:bg-surface-dark rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-gray-800">
         <h3 className="text-xl font-black text-text-main dark:text-white mb-8">Bitácora de Seguridad</h3>
         <div className="space-y-6">
-          {[
-            { child: 'Mariana', action: 'Actualizó permisos de emergencia', time: 'Hoy, 9:00 AM', icon: 'security' },
-            { child: 'Leo', action: 'Registro de alimentación por Abuela Rosa', time: 'Hace 1 hora', icon: 'restaurant' },
-          ].map((activity, i) => (
-            <div key={i} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-background-dark transition-colors group">
-              <div className="size-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:text-primary transition-colors">
-                <span className="material-symbols-outlined">{activity.icon}</span>
+          {isLoadingLogs ? (
+            <div className="text-center py-4 text-gray-400 text-sm">Cargando actividad...</div>
+          ) : logs.length === 0 ? (
+            <div className="text-center py-4 text-gray-400 text-sm italic">No hay actividad reciente.</div>
+          ) : (
+            logs.map((log) => (
+              <div key={log.id} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-background-dark transition-colors group">
+                <div className="size-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:text-primary transition-colors">
+                  <span className="material-symbols-outlined">{getLogIcon(log.action_type)}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-text-main dark:text-white">
+                    <span className="text-primary">{log.actor_name}:</span> {log.description}
+                  </p>
+                  <p className="text-xs text-text-muted dark:text-gray-500">{formatTimeAgo(log.created_at)}</p>
+                </div>
+                <span className="material-symbols-outlined text-gray-300">verified</span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-text-main dark:text-white">
-                  <span className="text-primary">{activity.child}:</span> {activity.action}
-                </p>
-                <p className="text-xs text-text-muted dark:text-gray-500">{activity.time}</p>
-              </div>
-              <span className="material-symbols-outlined text-gray-300">verified</span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
     </main>
   );
+};
+
+// Helper utils for logs
+const getLogIcon = (type: string) => {
+  switch (type) {
+    case 'ALERT_CREATED': return 'campaign';
+    case 'ALERT_RESOLVED': return 'check_circle';
+    case 'PROFILE_UPDATED': return 'manage_accounts';
+    case 'MEMBER_ADDED': return 'person_add';
+    case 'GUIDE_COMPLETED': return 'school';
+    case 'HEALTH_LOG': return 'medical_services';
+    default: return 'history';
+  }
+};
+
+const formatTimeAgo = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return 'Hace un momento';
+  if (diffInSeconds < 3600) return `Hace ${Math.floor(diffInSeconds / 60)} min`;
+  if (diffInSeconds < 86400) return `Hace ${Math.floor(diffInSeconds / 3600)} horas`;
+  return date.toLocaleDateString();
 };
 
 export default FamilyView;
