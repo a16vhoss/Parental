@@ -1,8 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 // Changed Baby to FamilyMember to fix import error
 import { FamilyMember } from '../types';
 import { getMemberIcon } from '../utils/memberUtils';
+import { STAGES } from '../types/guidesTypes';
+import { getModulesByStage } from '../data/guidesData';
 
 interface DashboardProps {
   userName: string;
@@ -67,6 +70,7 @@ const ALL_GUIDES: GuideArticle[] = [
 ];
 
 const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewProfile, onAddChild }) => {
+  const navigate = useNavigate();
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [readArticles, setReadArticles] = useState<Set<string>>(new Set());
   const [bookmarked, setBookmarked] = useState<Set<string>>(new Set());
@@ -116,6 +120,39 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
 
     return guides;
   }, [childrenList, searchQuery]);
+
+  // Compute personalized guides based on children's ages
+  const personalizedGuides = useMemo(() => {
+    const parseToMonths = (ageStr: string, dob?: string): number => {
+      if (dob) {
+        const birthDate = new Date(dob);
+        const today = new Date();
+        return Math.max(0, (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth()));
+      }
+      const age = ageStr.toLowerCase();
+      if (age.includes('mes')) return parseInt(age.match(/\d+/)?.[0] || '0');
+      if (age.includes('año')) return parseInt(age.match(/\d+/)?.[0] || '1') * 12;
+      if (age === 'nuevo' || age === 'recién nacido') return 0;
+      return 0;
+    };
+
+    const result: { stage: typeof STAGES[0]; childName: string; childId: string; modules: number }[] = [];
+
+    childrenList.filter(c => c.role === 'Hijo/a').forEach(child => {
+      const ageMonths = parseToMonths(child.age, child.vitals?.dob);
+      const stage = STAGES.find(s => ageMonths >= s.minMonths && ageMonths < s.maxMonths);
+      if (stage) {
+        result.push({
+          stage,
+          childName: child.name.split(' ')[0],
+          childId: child.id,
+          modules: getModulesByStage(stage.id).length
+        });
+      }
+    });
+
+    return result;
+  }, [childrenList]);
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -296,96 +333,57 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
 
         <section className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-[#121716] dark:text-white text-2xl font-bold tracking-tight">Personalizado para ti</h2>
-            <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Guía del Día</p>
+            <h2 className="text-[#121716] dark:text-white text-2xl font-bold tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">auto_awesome</span>
+              Guías para tus hijos
+            </h2>
+            <button onClick={() => navigate('/guias')} className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] hover:underline">
+              Ver todas
+            </button>
           </div>
 
-          <div className="flex flex-col gap-4">
-            {relevantGuides.map((guide) => {
-              const isFav = favorites.has(guide.id);
-              const isRead = readArticles.has(guide.id);
-              const isBookmarked = bookmarked.has(guide.id);
-
-              return (
-                <article
-                  key={guide.id}
-                  className={`bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-700/50 flex flex-col md:flex-row gap-5 items-start relative ${isRead ? 'opacity-75 grayscale-[0.3]' : ''}`}
+          {personalizedGuides.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {personalizedGuides.map((item, index) => (
+                <div
+                  key={`${item.stage.id}-${item.childId}-${index}`}
+                  onClick={() => navigate(`/guias/${item.stage.id}`)}
+                  className="group bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700 cursor-pointer relative overflow-hidden"
                 >
-                  <div className="w-full md:w-1/4 aspect-video md:aspect-square rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden relative group shrink-0">
-                    <img
-                      src={guide.image}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      alt={guide.title}
-                    />
-                    <div className="absolute top-2 left-2 bg-white/90 dark:bg-black/60 backdrop-blur text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm text-[#121716] dark:text-white">
-                      {guide.category}
+                  <div className="absolute -top-10 -right-10 size-32 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: item.stage.color }} />
+                  <div className="relative z-10 flex items-center gap-4">
+                    <div className="size-14 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0" style={{ backgroundColor: item.stage.color }}>
+                      <span className="material-symbols-outlined text-2xl icon-filled">{item.stage.icon}</span>
                     </div>
-                    {isRead && (
-                      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center backdrop-blur-[1px]">
-                        <span className="material-symbols-outlined text-white text-4xl icon-filled drop-shadow-md">check_circle</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 flex flex-col gap-2">
-                    <div className="flex justify-between items-start">
-                      <h3 className={`text-xl font-bold text-[#121716] dark:text-white leading-snug ${isRead ? 'line-through decoration-primary/50 text-gray-400' : ''}`}>
-                        {guide.title}
-                      </h3>
-                    </div>
-
-                    <p className="text-[#678380] dark:text-gray-400 text-sm leading-relaxed line-clamp-2">
-                      {guide.description}
-                    </p>
-
-                    <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-50 dark:border-gray-700/50">
-                      <span className="text-[10px] text-gray-500 font-bold flex items-center gap-1 uppercase tracking-widest">
-                        <span className="material-symbols-outlined text-sm">schedule</span> {guide.readTime} lectura
-                      </span>
-
-                      <div className="flex gap-1">
-                        <button
-                          onClick={(e) => toggleRead(guide.id, e)}
-                          title={isRead ? "Marcar como no leído" : "Marcar como leído"}
-                          className={`p-2 rounded-lg transition-colors flex items-center justify-center ${isRead ? 'text-primary bg-primary/10' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
-                        >
-                          <span className={`material-symbols-outlined text-[22px] ${isRead ? 'icon-filled' : ''}`}>
-                            {isRead ? 'visibility' : 'visibility_off'}
-                          </span>
-                        </button>
-                        <button
-                          onClick={(e) => toggleFavorite(guide.id, e)}
-                          title={isFav ? "Quitar de favoritos" : "Añadir a favoritos"}
-                          className={`p-2 rounded-lg transition-colors flex items-center justify-center ${isFav ? 'text-rose-500 bg-rose-50 dark:bg-rose-500/10' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
-                        >
-                          <span className={`material-symbols-outlined text-[22px] ${isFav ? 'icon-filled' : ''}`}>
-                            favorite
-                          </span>
-                        </button>
-                        <button
-                          onClick={(e) => toggleBookmark(guide.id, e)}
-                          title={isBookmarked ? "Quitar de guardados" : "Guardar para después"}
-                          className={`p-2 rounded-lg transition-colors flex items-center justify-center ${isBookmarked ? 'text-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
-                        >
-                          <span className={`material-symbols-outlined text-[22px] ${isBookmarked ? 'icon-filled' : ''}`}>
-                            {isBookmarked ? 'bookmark' : 'bookmark_add'}
-                          </span>
-                        </button>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-[#121716] dark:text-white leading-tight">{item.stage.name}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{item.stage.description}</p>
+                      <div className="mt-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${item.stage.color}15`, color: item.stage.color }}>
+                          <span className="material-symbols-outlined text-xs">child_care</span>
+                          Para: {item.childName}
+                        </span>
                       </div>
                     </div>
+                    <span className="material-symbols-outlined text-gray-300 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
                   </div>
-                </article>
-              );
-            })}
-
-            {relevantGuides.length === 0 && (
-              <div className="py-12 text-center bg-white dark:bg-surface-dark rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-                <span className="material-symbols-outlined text-5xl text-gray-300 mb-2">auto_stories</span>
-                <p className="text-gray-500 font-bold">No hay guías específicas para esta etapa hoy.</p>
-                <p className="text-sm text-gray-400">Pronto tendremos más contenido.</p>
-              </div>
-            )}
-          </div>
+                  <div className="relative z-10 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700/50 flex items-center justify-between">
+                    <span className="text-xs text-gray-400 font-medium">{item.modules} módulos disponibles</span>
+                    <span className="text-xs font-bold text-primary">Explorar →</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 text-center bg-white dark:bg-surface-dark rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+              <span className="material-symbols-outlined text-5xl text-gray-300 mb-2">menu_book</span>
+              <p className="text-gray-500 font-bold">Agrega hijos para ver guías personalizadas</p>
+              <button onClick={onAddChild} className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold text-sm">
+                <span className="material-symbols-outlined text-sm">person_add</span>
+                Agregar Hijo
+              </button>
+            </div>
+          )}
         </section>
       </div>
     </div>
