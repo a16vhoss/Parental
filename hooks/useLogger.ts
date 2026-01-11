@@ -14,7 +14,7 @@ interface LogActivityParams {
     actionType: ActionType;
     description: string;
     entityId?: string;
-    entityType?: 'child' | 'alert' | 'guide' | 'family';
+    entityType?: 'child' | 'alert' | 'guide' | 'family' | 'event';
 }
 
 export const useLogger = () => {
