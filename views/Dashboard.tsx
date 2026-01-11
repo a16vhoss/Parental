@@ -204,9 +204,9 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
   return (
     <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-10 pb-28 lg:pb-10 w-full scroll-smooth bg-background-light dark:bg-background-dark" onClick={() => setShowNotifications(false)}>
       <div className="max-w-[800px] mx-auto flex flex-col gap-10">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative">
+        <header className="flex flex-row items-start md:items-end justify-between gap-4 relative">
           <div className="flex flex-col gap-2 w-full">
-            <p className="text-[#678380] dark:text-gray-400 text-sm font-medium uppercase tracking-wider">
+            <p className="hidden md:block text-[#678380] dark:text-gray-400 text-sm font-medium uppercase tracking-wider">
               {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
             </p>
 
@@ -248,7 +248,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
             )}
           </div>
 
-          <div className="hidden md:flex gap-2 relative">
+          <div className="flex bg-white dark:bg-surface-dark md:bg-transparent rounded-2xl p-2 md:p-0 shadow-sm md:shadow-none gap-2 relative">
             <button
               onClick={(e) => { e.stopPropagation(); setIsSearchOpen(!isSearchOpen); }}
               className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all ${isSearchOpen ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-[#121716] dark:text-white'}`}
