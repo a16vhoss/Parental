@@ -220,6 +220,27 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const handleDeleteMember = async (memberId: string) => {
+    const previousFamily = family;
+    setFamily(prev => prev.filter(m => m.id !== memberId));
+
+    try {
+      const { error } = await supabase
+        .from('family_members')
+        .delete()
+        .eq('id', memberId);
+
+      if (error) {
+        console.error('Error deleting member:', error);
+        throw error;
+      }
+    } catch (err: any) {
+      console.error('Error deleting member:', err);
+      alert(`Error al eliminar: ${err.message || 'Error desconocido'}`);
+      setFamily(previousFamily);
+    }
+  };
+
   const handleEnterApp = () => {
     if (session) {
       navigate('/dashboard');
@@ -337,6 +358,8 @@ const AppContent: React.FC = () => {
                   childrenList={family}
                   onViewChild={handleViewMemberProfile}
                   onAddChild={() => navigate('/familia/nuevo')}
+                  onEditMember={handleEditMember}
+                  onDeleteMember={handleDeleteMember}
                 />
               </ProtectedRoute>
             } />
