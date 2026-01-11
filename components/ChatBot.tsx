@@ -49,20 +49,34 @@ const ChatBot: React.FC = () => {
 
         try {
             const genAI = new GoogleGenerativeAI(API_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const modelNames = ["gemini-1.5-flash", "gemini-pro"];
+            let result = null;
+            let usedModel = "";
 
-            const chat = model.startChat({
-                history: messages.filter(m => m.id !== 'welcome').map(m => ({
-                    role: m.role,
-                    parts: [{ text: m.content }]
-                })),
-                generationConfig: {
-                    maxOutputTokens: 500,
-                },
-                systemInstruction: "Eres un asistente virtual experto en crianza y desarrollo infantil para la aplicación 'Guía Parental'. Tu tono es amable, empático y profesional. Proporciona consejos prácticos basados en evidencia, pero siempre recuerda al usuario consultar a un pediatra para temas médicos. Respuestas concisas y fáciles de leer. Si te preguntan sobre la app, ayuda a navegar por las secciones: Alertas Amber, Guías de Desarrollo, Directorio, Perfil del Niño, Calendario de Salud."
-            });
+            for (const modelName of modelNames) {
+                try {
+                    const model = genAI.getGenerativeModel({ model: modelName });
+                    const chat = model.startChat({
+                        history: messages.filter(m => m.id !== 'welcome').map(m => ({
+                            role: m.role,
+                            parts: [{ text: m.content }]
+                        })),
+                        generationConfig: {
+                            maxOutputTokens: 500,
+                        },
+                        systemInstruction: "Eres un asistente virtual experto en crianza y desarrollo infantil para la aplicación 'Guía Parental'. Tu tono es amable, empático y profesional. Proporciona consejos prácticos basados en evidencia, pero siempre recuerda al usuario consultar a un pediatra para temas médicos. Respuestas concisas y fáciles de leer. Si te preguntan sobre la app, ayuda a navegar por las secciones: Alertas Amber, Guías de Desarrollo, Directorio, Perfil del Niño, Calendario de Salud."
+                    });
 
-            const result = await chat.sendMessage(inputText);
+                    result = await chat.sendMessage(inputText);
+                    usedModel = modelName;
+                    break; // Success
+                } catch (e) {
+                    console.warn(`ChatBot: Model ${modelName} failed`, e);
+                }
+            }
+
+            if (!result) throw new Error("All models failed");
+
             const response = await result.response;
             const text = response.text();
 
@@ -79,7 +93,7 @@ const ChatBot: React.FC = () => {
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'model',
-                content: "Lo siento, tuve un problema al procesar tu mensaje. ¿Podrías intentarlo de nuevo?",
+                content: "Lo siento, tuve un problema al conectarme con la IA. Por favor verifica tu conexión o intenta más tarde.",
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, errorMsg]);
@@ -131,13 +145,15 @@ const ChatBot: React.FC = () => {
                             >
                                 <div
                                     className={`max-w-[85%] rounded-2xl p-3 text-sm shadow-sm ${msg.role === 'user'
-                                            ? 'bg-primary text-white rounded-br-none'
-                                            : 'bg-white dark:bg-[#2A302E] dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-bl-none'
+                                        ? 'bg-primary text-white rounded-br-none'
+                                        : 'bg-white dark:bg-[#2A302E] dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-bl-none'
                                         }`}
                                 >
-                                    <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none">
-                                        {msg.content}
-                                    </ReactMarkdown>
+                                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                                        <ReactMarkdown>
+                                            {msg.content}
+                                        </ReactMarkdown>
+                                    </div>
                                     <p className={`text-[10px] mt-1 text-right ${msg.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
                                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
