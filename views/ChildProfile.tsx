@@ -38,10 +38,49 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
   const [newHeight, setNewHeight] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
 
-  // Datos de crecimiento predefinidos (mock)
-
-
   const child = childrenList.find(c => c.id === childId) || childrenList[0];
+
+  // Helper to calculate age from DOB
+  const calculateAge = (dob?: string) => {
+    if (!dob) return 'Edad desconocida';
+
+    const birthDate = new Date(dob);
+    const today = new Date();
+
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    let days = today.getDate() - birthDate.getDate();
+
+    if (days < 0) {
+      months--;
+      // Get days in previous month to add to days
+      // const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+      // days += prevMonth.getDate(); 
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (years === 0 && months === 0) {
+      // Check for strict days difference if needed, but simplistic approach:
+      const diffTime = Math.abs(today.getTime() - birthDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return `${diffDays} días`;
+    }
+
+    if (years === 0) return `${months} ${months === 1 ? 'mes' : 'meses'}`;
+
+    if (years > 0 && years < 3) {
+      return months > 0
+        ? `${years} ${years === 1 ? 'año' : 'años'} y ${months} ${months === 1 ? 'mes' : 'meses'}`
+        : `${years} ${years === 1 ? 'año' : 'años'}`;
+    }
+
+    return `${years} años`;
+  };
+
+  const dynamicAge = calculateAge(child?.vitals?.dob);
 
   useEffect(() => {
     if (!childId) return;
@@ -80,7 +119,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
   const handleShare = async () => {
     const shareData = {
       title: `Perfil de ${child.name}`,
-      text: `Mira el progreso de ${child.name} (${child.age}) en Guía Parental.`,
+      text: `Mira el progreso de ${child.name} (${dynamicAge}) en Guía Parental.`,
       url: window.location.href,
     };
 
@@ -255,7 +294,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
                 className="h-32 w-32 rounded-full border-4 border-white dark:border-surface-dark shadow-md object-cover transition-transform group-hover:scale-105 duration-500"
               />
               <h2 className="text-2xl font-bold mt-4 text-[#121716] dark:text-white">{child.name}</h2>
-              <p className="text-[#678380] dark:text-gray-400 font-medium">{child.age}</p>
+              <p className="text-[#678380] dark:text-gray-400 font-medium">{dynamicAge}</p>
               <div className="mt-3 inline-flex items-center px-3 py-1 bg-primary/10 rounded-full text-xs font-bold text-primary animate-pulse-slow">
                 {child.status}
               </div>
