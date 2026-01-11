@@ -313,7 +313,7 @@ const EventsList = (title: string, list: HealthEvent[], children: FamilyMember[]
                                     {onEdit && (
                                         <button
                                             onClick={() => onEdit(event)}
-                                            className="p-1 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                                            className="p-1 text-gray-400 hover:text-primary transition-colors"
                                             title="Editar"
                                         >
                                             <span className="material-symbols-outlined text-lg">edit</span>
@@ -322,7 +322,7 @@ const EventsList = (title: string, list: HealthEvent[], children: FamilyMember[]
                                     {onDelete && (
                                         <button
                                             onClick={() => onDelete(event.id)}
-                                            className="p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                                             title="Eliminar"
                                         >
                                             <span className="material-symbols-outlined text-lg">delete</span>
