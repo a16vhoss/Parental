@@ -482,7 +482,10 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
             <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
               <h3 className="font-bold text-lg text-[#121716] dark:text-white mb-4">Curva de Peso</h3>
               <GrowthChart
-                data={growthLogs.filter(v => v.weight).map(v => ({ date: v.date!, weight: v.weight }))}
+                data={growthLogs.filter(v => v.weight).length > 0
+                  ? growthLogs.filter(v => v.weight).map(v => ({ date: v.date!, weight: v.weight }))
+                  : [{ date: new Date().toISOString(), weight: parseFloat(child.vitals.weight || '0') }].filter(v => v.weight > 0)
+                }
                 type="weight"
                 color="#10b981"
               />
@@ -491,7 +494,10 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
             <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
               <h3 className="font-bold text-lg text-[#121716] dark:text-white mb-4">Curva de Talla</h3>
               <GrowthChart
-                data={growthLogs.filter(v => v.height).map(v => ({ date: v.date!, height: v.height }))}
+                data={growthLogs.filter(v => v.height).length > 0
+                  ? growthLogs.filter(v => v.height).map(v => ({ date: v.date!, height: v.height }))
+                  : [{ date: new Date().toISOString(), height: parseFloat(child.vitals.height || '0') }].filter(v => v.height > 0)
+                }
                 type="height"
                 color="#3b82f6"
               />
