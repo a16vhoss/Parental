@@ -328,14 +328,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
             </div>
           )}
 
-          {/* FAMILY TREE SECTION */}
-          <div className="mb-6">
-            <FamilyTree
-              members={childrenList}
-              onAddMember={(role) => onAddMember && onAddMember(role)}
-              onEditMember={(member) => onEditMember && onEditMember(member)}
-            />
-          </div>
+
 
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
 
@@ -449,6 +442,16 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* FAMILY TREE SECTION (Moved) */}
+          <div className="mb-6">
+            {/* Using full width here since it is in the main column now */}
+            <FamilyTree
+              members={childrenList}
+              onAddMember={(role) => onAddMember && onAddMember(role)}
+              onEditMember={(member) => onEditMember && onEditMember(member)}
+            />
           </div>
         </div>
       </div>
