@@ -115,7 +115,13 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
 
     if (!confirm('¿Estás seguro de eliminar este registro?')) return;
 
-    await supabase.from('growth_logs').delete().eq('id', selectedLog.id);
+    const { error } = await supabase.from('growth_logs').delete().eq('id', selectedLog.id);
+
+    if (error) {
+      console.error('Error deleting log:', error);
+      alert('Error al eliminar el registro. Por favor intenta de nuevo.');
+      return;
+    }
 
     // Refresh local
     setGrowthLogs(prev => prev.filter(l => l.id !== selectedLog.id));
