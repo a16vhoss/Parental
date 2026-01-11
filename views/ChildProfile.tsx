@@ -278,6 +278,15 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
             </div>
           )}
 
+          {/* FAMILY TREE SECTION */}
+          <div className="mb-6">
+            <FamilyTree
+              members={childrenList}
+              onAddMember={(role) => onAddMember && onAddMember(role)}
+              onEditMember={(member) => onEditMember && onEditMember(member)}
+            />
+          </div>
+
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
 
             <h3 className="text-lg font-bold flex items-center gap-2 mb-6 text-[#121716] dark:text-white">
