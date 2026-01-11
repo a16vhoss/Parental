@@ -91,7 +91,7 @@ const Directory: React.FC = () => {
   return (
     <main className="flex flex-col lg:flex-row h-screen overflow-hidden bg-background-light dark:bg-background-dark">
       {/* Left Column: Search and List */}
-      <div className="w-full lg:w-[450px] xl:w-[500px] h-full flex flex-col bg-white dark:bg-surface-dark shadow-xl z-20 border-r border-gray-100 dark:border-gray-800">
+      <div className="w-full lg:w-[450px] xl:w-[500px] h-[55vh] lg:h-full flex flex-col bg-white dark:bg-surface-dark shadow-xl z-20 border-r border-gray-100 dark:border-gray-800 order-2 lg:order-1">
         <div className="p-6 border-b border-gray-100 dark:border-gray-800">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-black text-text-main dark:text-white tracking-tight">
@@ -215,7 +215,7 @@ const Directory: React.FC = () => {
       </div>
 
       {/* Right Column: Interactive Map */}
-      <div id="map-container" className="flex-1 h-full relative bg-gray-100">
+      <div id="map-container" className="flex-1 relative bg-gray-100 order-1 lg:order-2 min-h-[45vh]">
         {!apiKey ? (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-background-dark p-6 text-center">
             <span className="material-symbols-outlined text-6xl mb-4 text-amber-500">warning</span>

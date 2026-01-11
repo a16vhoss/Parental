@@ -12,7 +12,7 @@ const MobileNav: React.FC = () => {
 
     const navItems = [
         { path: '/dashboard', label: 'Inicio', icon: 'grid_view' },
-        { path: '/directorio', label: 'Directorio', icon: 'health_and_safety' },
+        { path: '/salud', label: 'Salud', icon: 'medical_services' },
         { path: '/alerta', label: 'Alerta', icon: 'emergency_home', isSpecial: true },
         { path: '/blog', label: 'Blog', icon: 'auto_stories' },
         { path: '/perfil', label: 'Mi Cuenta', icon: 'person' },

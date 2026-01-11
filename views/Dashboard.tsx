@@ -98,7 +98,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
 
       // Extract child IDs from active alerts
       if (alerts) {
-        const childIds = new Set(alerts.map(a => a.child_id));
+        const childIds = new Set(alerts.map((a: any) => a.child_id as string));
         setActiveAlertChildIds(childIds);
       }
 
@@ -366,7 +366,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
               <span className="material-symbols-outlined">rss_feed</span>
             </div>
             <div>
-              <h3 className="font-bold text-[#121716] dark:text-white">Blog Parental</h3>
+              <h3 className="font-bold text-[#121716] dark:text-white">Blog Baby Care Box</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">Novedades y artículos recientes</p>
             </div>
           </div>
@@ -378,7 +378,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
           <div className="flex items-center justify-between">
             <h2 className="text-[#121716] dark:text-white text-2xl font-bold tracking-tight flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">menu_book</span>
-              Guías Parentales
+              Guías Baby Care Box
             </h2>
           </div>
 
@@ -389,19 +389,19 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
             {/* Decorative gradient */}
             <div className="absolute -top-20 -right-20 size-40 rounded-full blur-3xl bg-primary/20 group-hover:opacity-50 transition-opacity" />
 
-            <div className="relative z-10 flex items-center gap-5">
-              <div className="size-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg">
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+              <div className="size-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shrink-0">
                 <span className="material-symbols-outlined text-3xl icon-filled">auto_stories</span>
               </div>
 
-              <div className="flex-1">
+              <div className="flex-1 w-full sm:w-auto">
                 <h3 className="text-xl font-bold text-[#121716] dark:text-white mb-1">Explora nuestras guías</h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
                   8 etapas de desarrollo con contenido especializado para cada fase de crecimiento de tu hijo.
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 bg-white dark:bg-surface-dark px-4 py-2 rounded-xl shadow group-hover:bg-primary group-hover:text-white transition-all">
+              <div className="flex items-center gap-2 bg-white dark:bg-surface-dark px-4 py-2 rounded-xl shadow group-hover:bg-primary group-hover:text-white transition-all w-full sm:w-auto justify-center sm:justify-start">
                 <span className="text-sm font-bold">Abrir</span>
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </div>

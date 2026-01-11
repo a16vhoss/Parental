@@ -45,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, currentPath }) => {
             <span className="material-symbols-outlined text-primary text-3xl">family_star</span>
           </div>
           <div className="flex flex-col">
-            <h1 className="text-[#121716] dark:text-white text-xl font-black leading-none tracking-tight">parental</h1>
+            <h1 className="text-[#121716] dark:text-white text-xl font-black leading-none tracking-tight">Baby Care Box</h1>
             <p className="text-[#678380] dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider mt-1.5">Plataforma Digital</p>
           </div>
         </Link>

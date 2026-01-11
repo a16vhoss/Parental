@@ -518,7 +518,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
                     <p>No hay registros históricos aún.</p>
                   </div>
                 ) : (
-                  <div className="border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+                  <div className="border border-gray-100 dark:border-gray-800 rounded-xl overflow-x-auto">
                     <table className="w-full text-sm text-left">
                       <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 font-medium">
                         <tr>

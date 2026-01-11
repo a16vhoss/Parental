@@ -16,9 +16,9 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         manifest: {
-          name: 'Parental - Guía y Salud',
-          short_name: 'Parental',
-          description: 'Asistente y guía para padres. Control de salud y alertas.',
+          name: 'Baby Care Box',
+          short_name: 'Baby Care Box',
+          description: 'Asistente y guía para el cuidado del bebé. Control de salud y alertas.',
           theme_color: '#ffffff',
           background_color: '#ffffff',
           display: 'standalone',
