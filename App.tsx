@@ -16,9 +16,12 @@ import GuidesView from './views/GuidesView';
 import GuideDetail from './views/GuideDetail';
 import ModuleView from './views/ModuleView';
 import Login from './views/Login';
+import AlertDetails from './views/AlertDetails';
 import Sidebar from './components/Sidebar';
 import MobileNav from './components/MobileNav';
 import { supabase } from './lib/supabase';
+import AlertNotification from './components/AlertNotification';
+import { calculateDistance } from './lib/geo';
 
 // Wrapper component that provides navigation context
 const AppContent: React.FC = () => {
@@ -35,6 +38,7 @@ const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(true); // Track if session is being fetched
+  const [activeAlert, setActiveAlert] = useState<any>(null);
 
   const userName = session?.user?.user_metadata?.full_name || 'Usuario';
   const userEmail = session?.user?.email || '';
@@ -113,7 +117,47 @@ const AppContent: React.FC = () => {
     };
 
     fetchFamily();
+    fetchFamily();
   }, [location.pathname, session]);
+
+  // Realtime Alert Subscription
+  useEffect(() => {
+    if (!session?.user) return;
+
+    const channel = supabase
+      .channel('amber_alerts')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'amber_alerts', filter: 'status=eq.active' },
+        (payload) => {
+          const alert = payload.new;
+
+          // Check distance
+          if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition((position) => {
+              const userLat = position.coords.latitude;
+              const userLng = position.coords.longitude;
+
+              const distance = calculateDistance(userLat, userLng, alert.latitude, alert.longitude);
+
+              if (distance <= alert.radius_km) {
+                setActiveAlert(alert);
+                // Play sound if possible
+                try {
+                  const audio = new Audio('/alert-sound.mp3');
+                  audio.play().catch(e => console.log('Audio play failed', e));
+                } catch (e) { console.log('Audio error', e); }
+              }
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session]);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -457,9 +501,26 @@ const AppContent: React.FC = () => {
               </ProtectedRoute>
             } />
 
+            <Route path="/alerta/detalles/:alertId" element={
+              <ProtectedRoute>
+                <AlertDetails />
+              </ProtectedRoute>
+            } />
+
             {/* Fallback route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+        )}
+
+        {activeAlert && (
+          <AlertNotification
+            alert={activeAlert}
+            onDismiss={() => setActiveAlert(null)}
+            onViewDetails={() => {
+              setActiveAlert(null);
+              navigate(`/alerta/detalles/${activeAlert.id}`);
+            }}
+          />
         )}
       </div>
       {showAddChild && (

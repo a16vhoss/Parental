@@ -447,6 +447,88 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
           </div>
         </section>
 
+        <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-amber-200 dark:border-amber-900/30">
+          <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-amber-600">
+            <span className="material-symbols-outlined">emergency_home</span>
+            {language === 'es' ? 'Configuración de Alerta Amber' : 'Amber Alert Settings'}
+          </h3>
+
+          <div className="space-y-6">
+            <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl text-sm text-gray-600 dark:text-gray-300">
+              {language === 'es'
+                ? 'Configura tu seguridad para poder activar alertas y ayuda a otros niños cercanos.'
+                : 'Configure security to activate alerts and help other nearby children.'}
+            </div>
+
+            {/* PIN Configuration */}
+            <div className="space-y-3">
+              <label className="text-sm font-bold text-[#121716] dark:text-white block">
+                {language === 'es' ? 'PIN de Seguridad (4 dígitos)' : 'Security PIN (4 digits)'}
+              </label>
+              <div className="flex gap-4 items-center">
+                <input
+                  type="password"
+                  maxLength={4}
+                  placeholder="****"
+                  className="w-32 bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-center text-xl font-bold tracking-widest focus:ring-2 focus:ring-amber-500"
+                  onChange={async (e) => {
+                    const pin = e.target.value.replace(/[^0-9]/g, '');
+                    if (pin.length === 4) {
+                      // Save PIN to user_metadata
+                      const { error } = await supabase.auth.updateUser({
+                        data: { emergency_pin: pin }
+                      });
+                      if (!error) alert('PIN guardado');
+                    }
+                  }}
+                />
+                <span className="text-xs text-gray-500">
+                  {language === 'es' ? 'Requerido para activar alertas' : 'Required to activate alerts'}
+                </span>
+              </div>
+            </div>
+
+            {/* Location Toggle */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-background-dark rounded-xl">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                  <span className="material-symbols-outlined">location_on</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm text-[#121716] dark:text-white">
+                    {language === 'es' ? 'Ubicación Activa' : 'Location Active'}
+                  </span>
+                  <span className="text-xs text-[#678380]">
+                    {language === 'es' ? 'Para recibir alertas cercanas' : 'To receive nearby alerts'}
+                  </span>
+                </div>
+              </div>
+              <button
+                className="text-primary font-bold text-sm hover:underline"
+                onClick={() => {
+                  if ('geolocation' in navigator) {
+                    navigator.geolocation.getCurrentPosition(async (position) => {
+                      const { latitude, longitude } = position.coords;
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if (user) {
+                        await supabase.from('user_locations').upsert({
+                          user_id: user.id,
+                          latitude,
+                          longitude,
+                          notifications_enabled: true
+                        });
+                        alert('Ubicación actualizada');
+                      }
+                    });
+                  }
+                }}
+              >
+                {language === 'es' ? 'Actualizar' : 'Update'}
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* Logout Section */}
         <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-red-100 dark:border-red-900/30">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-red-600">

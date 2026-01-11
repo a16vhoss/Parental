@@ -22,7 +22,7 @@ const FamilyView: React.FC<FamilyViewProps> = ({ childrenList, onViewChild, onAd
     }
   };
 
-  const MemberCard = ({ member }: { member: FamilyMember }) => {
+  const MemberCard: React.FC<{ member: FamilyMember }> = ({ member }) => {
     const hasAvatar = member.avatar && !member.avatar.includes('unsplash') && !member.avatar.includes('default');
     const memberIcon = getMemberIcon(member);
 

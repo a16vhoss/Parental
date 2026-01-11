@@ -15,82 +15,82 @@ interface FamilyTreeProps {
 
 
 
-const NodeCard = ({
-    member,
-    rolePlaceholder,
-    onAddMember,
-    onEditMember,
-    currentUserId
-}: {
+const NodeCard: React.FC<{
     member?: FamilyMember;
     rolePlaceholder: string;
     onAddMember: (role: any) => void;
     onEditMember: (member: FamilyMember) => void;
     currentUserId?: string;
+}> = ({
+    member,
+    rolePlaceholder,
+    onAddMember,
+    onEditMember,
+    currentUserId
 }) => {
-    if (!member) {
+        if (!member) {
+            return (
+                <button
+                    onClick={() => onAddMember(rolePlaceholder)}
+                    className="flex flex-col items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-primary/5 transition-all group relative bg-gray-50 dark:bg-white/5"
+                >
+                    <span className="material-symbols-outlined text-gray-300 group-hover:text-primary text-xl">add</span>
+                    <span className="absolute -bottom-6 text-[10px] text-gray-400 font-medium uppercase tracking-wide">{rolePlaceholder}</span>
+                </button>
+            );
+        }
+
+        // Determine if we should show the icon (stage) or the avatar image
+        // Rule: If avatar is the default Unsplash placeholder OR starts with 'https://ui-avatars', show the Stage Icon badge
+        // Actually, user wants "personas tengan un icono segun su edad".
+        // Let's ALWAYS show the icon as a badge on the avatar, OR replace the avatar if it looks generic.
+
+        // Check if avatar is default
+        const isDefaultAvatar = member.avatar.includes('unsplash') || !member.avatar;
+        const stageIcon = getMemberIcon(member);
+
+        // Check ownership
+        const canEdit = !member.created_by || member.created_by === currentUserId;
+
         return (
-            <button
-                onClick={() => onAddMember(rolePlaceholder)}
-                className="flex flex-col items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-primary/5 transition-all group relative bg-gray-50 dark:bg-white/5"
+            <div
+                onClick={() => canEdit && onEditMember(member)}
+                className={`flex flex-col items-center group relative z-10 ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
             >
-                <span className="material-symbols-outlined text-gray-300 group-hover:text-primary text-xl">add</span>
-                <span className="absolute -bottom-6 text-[10px] text-gray-400 font-medium uppercase tracking-wide">{rolePlaceholder}</span>
-            </button>
+                <div className="relative">
+                    {isDefaultAvatar ? (
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-surface-dark shadow-lg bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-105">
+                            <span className="material-symbols-outlined text-4xl text-primary">{stageIcon}</span>
+                        </div>
+                    ) : (
+                        <img
+                            src={member.avatar}
+                            alt={member.name}
+                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-surface-dark shadow-lg object-cover transition-transform group-hover:scale-105"
+                        />
+                    )}
+
+                    {/* Edit Badge */}
+                    {canEdit && (
+                        <div className="absolute bottom-0 right-0 bg-white dark:bg-surface-dark rounded-full p-1.5 shadow-sm border border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
+                            <span className="material-symbols-outlined text-primary text-sm block">edit</span>
+                        </div>
+                    )}
+
+                    {/* Age/Stage Badge (Always show if not default, to indicate stage) */}
+                    {!isDefaultAvatar && (
+                        <div className="absolute top-0 right-0 bg-primary text-white rounded-full p-1 shadow-sm border border-white dark:border-surface-dark scale-75">
+                            <span className="material-symbols-outlined text-xs block">{stageIcon}</span>
+                        </div>
+                    )}
+                </div>
+                <div className="mt-3 text-center bg-white dark:bg-surface-dark px-4 py-1.5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+                    <p className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[100px]">{member.name.split(' ')[0]}</p>
+                    <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">{rolePlaceholder}</p>
+                </div>
+            </div>
         );
-    }
-
-    // Determine if we should show the icon (stage) or the avatar image
-    // Rule: If avatar is the default Unsplash placeholder OR starts with 'https://ui-avatars', show the Stage Icon badge
-    // Actually, user wants "personas tengan un icono segun su edad".
-    // Let's ALWAYS show the icon as a badge on the avatar, OR replace the avatar if it looks generic.
-
-    // Check if avatar is default
-    const isDefaultAvatar = member.avatar.includes('unsplash') || !member.avatar;
-    const stageIcon = getMemberIcon(member);
-
-    // Check ownership
-    const canEdit = !member.created_by || member.created_by === currentUserId;
-
-    return (
-        <div
-            onClick={() => canEdit && onEditMember(member)}
-            className={`flex flex-col items-center group relative z-10 ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
-        >
-            <div className="relative">
-                {isDefaultAvatar ? (
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-surface-dark shadow-lg bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-105">
-                        <span className="material-symbols-outlined text-4xl text-primary">{stageIcon}</span>
-                    </div>
-                ) : (
-                    <img
-                        src={member.avatar}
-                        alt={member.name}
-                        className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-surface-dark shadow-lg object-cover transition-transform group-hover:scale-105"
-                    />
-                )}
-
-                {/* Edit Badge */}
-                {canEdit && (
-                    <div className="absolute bottom-0 right-0 bg-white dark:bg-surface-dark rounded-full p-1.5 shadow-sm border border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
-                        <span className="material-symbols-outlined text-primary text-sm block">edit</span>
-                    </div>
-                )}
-
-                {/* Age/Stage Badge (Always show if not default, to indicate stage) */}
-                {!isDefaultAvatar && (
-                    <div className="absolute top-0 right-0 bg-primary text-white rounded-full p-1 shadow-sm border border-white dark:border-surface-dark scale-75">
-                        <span className="material-symbols-outlined text-xs block">{stageIcon}</span>
-                    </div>
-                )}
-            </div>
-            <div className="mt-3 text-center bg-white dark:bg-surface-dark px-4 py-1.5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-                <p className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[100px]">{member.name.split(' ')[0]}</p>
-                <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">{rolePlaceholder}</p>
-            </div>
-        </div>
-    );
-};
+    };
 
 const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMember, currentUserId }) => {
     // Group members by generation

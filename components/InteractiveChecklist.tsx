@@ -50,7 +50,7 @@ const InteractiveChecklist: React.FC<InteractiveChecklistProps> = ({
 
             {/* Grouped Checklist Items */}
             <div className="space-y-6">
-                {Object.entries(groupedItems).map(([category, categoryItems]) => (
+                {(Object.entries(groupedItems) as [string, ChecklistItem[]][]).map(([category, categoryItems]) => (
                     <div key={category}>
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{category}</p>
                         <div className="space-y-2">
