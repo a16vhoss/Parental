@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 // Added FamilyMember to fix import error
 import { FamilyMember, FamilyRole } from '../types';
 import FamilyTree from '../components/FamilyTree';
+import { calculateAge } from '../utils/dateUtils';
 
 interface ChildProfileProps {
   childId: string | null;

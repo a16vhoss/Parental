@@ -1,5 +1,6 @@
 import React from 'react';
 import { FamilyMember } from '../types';
+import { calculateAge } from '../utils/dateUtils';
 
 interface FamilyTreeProps {
     members: FamilyMember[];
@@ -7,7 +8,7 @@ interface FamilyTreeProps {
     onEditMember: (member: FamilyMember) => void;
 }
 
-import { calculateAge } from '../utils/dateUtils';
+
 
 // Helper to determine icon based on age and role
 const getMemberIcon = (member: FamilyMember) => {
