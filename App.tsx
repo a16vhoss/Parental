@@ -18,6 +18,7 @@ import HealthView from './views/HealthView';
 // ... existing imports
 import ModuleView from './views/ModuleView';
 import Login from './views/Login';
+import GuideDetail from './views/GuideDetail';
 import AlertDetails from './views/AlertDetails';
 import AlertsFeed from './views/AlertsFeed';
 import Sidebar from './components/Sidebar';
