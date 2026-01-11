@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 // Changed Baby to FamilyMember to fix import error
 import { FamilyMember } from '../types';
+import { getMemberIcon } from '../utils/memberUtils';
 
 interface DashboardProps {
   userName: string;
@@ -256,22 +257,33 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
             </button>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
-            {childrenList.map(child => (
-              <div
-                key={child.id}
-                onClick={() => onViewProfile(child.id)}
-                className="snap-start min-w-[280px] flex-1 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-2xl p-5 flex items-center gap-5 relative overflow-hidden group hover:shadow-md transition-all cursor-pointer"
-              >
-                <img src={child.avatar} alt={child.name} className="rounded-full w-16 h-16 shadow-inner ring-4 ring-gray-50 dark:ring-gray-700 z-10 object-cover" />
-                <div className="flex flex-col z-10">
-                  <h3 className="text-[#121716] dark:text-white text-lg font-bold">{child.name.split(' ')[0]}</h3>
-                  <p className="text-[#678380] dark:text-gray-300 text-sm mb-2">{child.age}</p>
-                  <span className="inline-flex items-center px-2 py-1 rounded-lg bg-primary/10 dark:bg-primary/5 text-xs font-bold text-primary w-max">
-                    {child.status}
-                  </span>
+            {childrenList.map(child => {
+              const hasAvatar = child.avatar && !child.avatar.includes('unsplash') && !child.avatar.includes('default');
+              const memberIcon = getMemberIcon(child);
+
+              return (
+                <div
+                  key={child.id}
+                  onClick={() => onViewProfile(child.id)}
+                  className="snap-start min-w-[280px] flex-1 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-2xl p-5 flex items-center gap-5 relative overflow-hidden group hover:shadow-md transition-all cursor-pointer"
+                >
+                  {hasAvatar ? (
+                    <img src={child.avatar} alt={child.name} className="rounded-full w-16 h-16 shadow-inner ring-4 ring-gray-50 dark:ring-gray-700 z-10 object-cover" />
+                  ) : (
+                    <div className="rounded-full w-16 h-16 shadow-inner ring-4 ring-gray-50 dark:ring-gray-700 z-10 bg-primary/10 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-3xl text-primary">{memberIcon}</span>
+                    </div>
+                  )}
+                  <div className="flex flex-col z-10">
+                    <h3 className="text-[#121716] dark:text-white text-lg font-bold">{child.name.split(' ')[0]}</h3>
+                    <p className="text-[#678380] dark:text-gray-300 text-sm mb-2">{child.age}</p>
+                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-primary/10 dark:bg-primary/5 text-xs font-bold text-primary w-max">
+                      {child.status}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div
               onClick={onAddChild}
               className="snap-start min-w-[200px] bg-dashed border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl p-5 flex flex-col items-center justify-center gap-2 group hover:border-primary/50 transition-all cursor-pointer opacity-70 hover:opacity-100"
