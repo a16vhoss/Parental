@@ -44,14 +44,10 @@ const AlertDetails: React.FC = () => {
             .eq('id', alertData.created_by)
             .single();
 
-        // Mock phone if missing for demo
         if (reporterData) {
             setAlert(prev => ({
                 ...prev,
-                reporter: {
-                    ...reporterData,
-                    phone: reporterData.phone || '3312345678' // Mock default 
-                }
+                reporter: reporterData
             }));
         }
 
