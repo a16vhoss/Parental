@@ -521,7 +521,7 @@ const AppContent: React.FC = () => {
 
             <Route path="/salud" element={
               <ProtectedRoute>
-                <HealthView />
+                <HealthView childrenList={family} />
               </ProtectedRoute>
             } />
 
