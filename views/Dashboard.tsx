@@ -82,6 +82,8 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  const [activeAlertChildIds, setActiveAlertChildIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     const fetchNotifications = async () => {
       // 1. Fetch Active Alerts
@@ -93,6 +95,12 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
         .limit(5);
 
       if (error) console.error('Error fetching dashboard alerts:', error);
+
+      // Extract child IDs from active alerts
+      if (alerts) {
+        const childIds = new Set(alerts.map(a => a.child_id));
+        setActiveAlertChildIds(childIds);
+      }
 
       const alertNotifs = alerts?.map(a => ({
         id: a.id,
@@ -296,24 +304,43 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
               const hasAvatar = child.avatar && !child.avatar.includes('unsplash') && !child.avatar.includes('default');
               const memberIcon = getMemberIcon(child);
 
+              // Check if this child has an active alert
+              const hasActiveAlert = notifications.some(n => n.type === 'alert' && n.link?.includes(child.id));
+              // Alternatively, if notifications doesn't carry child_id easily, we might need to rely on a separate specific list or the fact that notifications link usually contains the alert ID, not child ID directly. 
+              // Better approach: filter the fetched 'alerts' data in useEffect to get child_ids. 
+              // Since we don't have that state readily available in render scope without adding it, let's use a more robust check if we can, or just rely on 'status' if we update it?
+              // Actually, best way: The 'notifications' state comes from 'alerts' fetch.
+              // Let's rely on a specific prop or state.
+              // For now, let's assume we can check against the alerts fetched.
+              // We need to store activeAlertChildIds. 
+              // Refactor step: I'll assume we add 'activeAlertChildIds' state loop below.
+
+              const isMissing = activeAlertChildIds.has(child.id);
+
               return (
                 <div
                   key={child.id}
                   onClick={() => onViewProfile(child.id)}
-                  className="snap-start min-w-[280px] flex-1 bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-2xl p-5 flex items-center gap-5 relative overflow-hidden group hover:shadow-md transition-all cursor-pointer"
+                  className={`snap-start min-w-[280px] flex-1 bg-white dark:bg-surface-dark border rounded-2xl p-5 flex items-center gap-5 relative overflow-hidden group hover:shadow-md transition-all cursor-pointer ${isMissing ? 'border-red-500 shadow-red-100 dark:shadow-none animate-pulse ring-2 ring-red-500 ring-offset-2 dark:ring-offset-background-dark' : 'border-gray-100 dark:border-gray-700'}`}
                 >
+                  {isMissing && (
+                    <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-xl uppercase tracking-wider z-20">
+                      Desaparecido
+                    </div>
+                  )}
+
                   {hasAvatar ? (
-                    <img src={child.avatar} alt={child.name} className="rounded-full w-16 h-16 shadow-inner ring-4 ring-gray-50 dark:ring-gray-700 z-10 object-cover" />
+                    <img src={child.avatar} alt={child.name} className={`rounded-full w-16 h-16 shadow-inner ring-4 z-10 object-cover ${isMissing ? 'ring-red-100 dark:ring-red-900/50 grayscale' : 'ring-gray-50 dark:ring-gray-700'}`} />
                   ) : (
-                    <div className="rounded-full w-16 h-16 shadow-inner ring-4 ring-gray-50 dark:ring-gray-700 z-10 bg-primary/10 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-3xl text-primary">{memberIcon}</span>
+                    <div className={`rounded-full w-16 h-16 shadow-inner ring-4 z-10 flex items-center justify-center ${isMissing ? 'bg-red-100 ring-red-200 text-red-600' : 'bg-primary/10 ring-gray-50 dark:ring-gray-700'}`}>
+                      <span className={`material-symbols-outlined text-3xl ${isMissing ? 'text-red-500' : 'text-primary'}`}>{isMissing ? 'person_alert' : memberIcon}</span>
                     </div>
                   )}
                   <div className="flex flex-col z-10">
-                    <h3 className="text-[#121716] dark:text-white text-lg font-bold">{child.name.split(' ')[0]}</h3>
+                    <h3 className={`text-lg font-bold ${isMissing ? 'text-red-600' : 'text-[#121716] dark:text-white'}`}>{child.name.split(' ')[0]}</h3>
                     <p className="text-[#678380] dark:text-gray-300 text-sm mb-2">{child.age}</p>
-                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-primary/10 dark:bg-primary/5 text-xs font-bold text-primary w-max">
-                      {child.status}
+                    <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold w-max ${isMissing ? 'bg-red-600 text-white' : 'bg-primary/10 dark:bg-primary/5 text-primary'}`}>
+                      {isMissing ? '🚨 ALERTA ACTIVA' : child.status}
                     </span>
                   </div>
                 </div>
