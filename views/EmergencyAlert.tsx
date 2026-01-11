@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { FamilyMember } from '../types';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface EmergencyAlertProps {
   onCancel: () => void;
@@ -19,6 +19,7 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
   const [isActivating, setIsActivating] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const navigate = useNavigate();
+  const locationState = useLocation(); // Hook to access state
 
   useEffect(() => {
     fetchChildren();
@@ -38,7 +39,15 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
 
     if (data) {
       setChildren(data as FamilyMember[]);
-      if (data.length > 0) setSelectedChildId(data[0].id);
+
+      // Check if a childId was passed via navigation state
+      const preSelectedId = locationState.state?.selectedChildId;
+
+      if (preSelectedId && data.find((c: FamilyMember) => c.id === preSelectedId)) {
+        setSelectedChildId(preSelectedId);
+      } else if (data.length > 0) {
+        setSelectedChildId(data[0].id);
+      }
     }
   };
 

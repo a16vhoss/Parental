@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useEffect } from 'react';
 
@@ -41,6 +42,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
   const [newWeight, setNewWeight] = useState('');
   const [newHeight, setNewHeight] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
+  const navigate = useNavigate();
 
   const child = childrenList.find(c => c.id === childId) || childrenList[0];
 
@@ -78,6 +80,53 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
 
     fetchLogs();
   }, [childId]);
+
+  // Check for active alerts for this child
+  const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
+  const [loadingStatus, setLoadingStatus] = useState(false);
+
+  useEffect(() => {
+    if (childId) checkAlertStatus();
+  }, [childId]);
+
+  const checkAlertStatus = async () => {
+    const { data } = await supabase
+      .from('amber_alerts')
+      .select('id')
+      .eq('child_id', childId)
+      .eq('status', 'active')
+      .limit(1); // Removed .single() to avoid error if 0 rows
+
+    if (data && data.length > 0) {
+      setActiveAlertId(data[0].id);
+    } else {
+      setActiveAlertId(null);
+    }
+  };
+
+  const handleToggleAlert = async () => {
+    if (activeAlertId) {
+      // MARK AS FOUND -> Validate pin or just confirm
+      if (window.confirm('¿Confirmas que el niño ha sido localizado? Esto desactivará la alerta inmediatamente.')) {
+        setLoadingStatus(true);
+        const { error } = await supabase
+          .from('amber_alerts')
+          .update({ status: 'resolved', resolved_at: new Date().toISOString() })
+          .eq('id', activeAlertId);
+
+        if (error) {
+          alert('Error al desactivar alerta');
+        } else {
+          setActiveAlertId(null);
+          alert('¡Excelente noticia! La alerta ha sido desactivada.');
+        }
+        setLoadingStatus(false);
+      }
+    } else {
+      // MARK AS LOST -> Redirect to EmergencyAlert
+      navigate('/alerta', { state: { selectedChildId: childId } });
+    }
+  };
 
   const history = growthLogs.length > 0 ? growthLogs : [
     { month: 'Hoy', weight: parseFloat(child?.vitals?.weight || '0'), height: parseFloat(child?.vitals?.height || '0'), percentile: 50, heightPercent: 70 }
@@ -258,6 +307,31 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm relative overflow-hidden group border border-gray-100 dark:border-gray-800">
             <div className={`absolute top-0 left-0 w-full h-24 bg-gradient-to-r ${child.vitals.sex === 'Male' ? 'from-blue-500/10 to-primary/20' : 'from-primary/10 to-accent-peach/20'}`}></div>
             <div className="relative flex flex-col items-center mt-4 text-center">
+
+              {/* STATUS TOGGLE BUTTON */}
+              {canEdit && (
+                <button
+                  onClick={handleToggleAlert}
+                  disabled={loadingStatus}
+                  className={`mb-6 px-6 py-2 rounded-full font-bold text-sm shadow-lg transform transition-all active:scale-95 flex items-center gap-2 ${activeAlertId
+                      ? 'bg-green-500 text-white hover:bg-green-600 animate-pulse'
+                      : 'bg-red-50 text-red-500 hover:bg-red-100 border border-red-100'
+                    }`}
+                >
+                  {activeAlertId ? (
+                    <>
+                      <span className="material-symbols-outlined">check_circle</span>
+                      MARCAR COMO ENCONTRADO
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined">warning</span>
+                      MARCAR COMO DESAPARECIDO
+                    </>
+                  )}
+                </button>
+              )}
+
               {child.avatar ? (
                 <img
                   src={child.avatar}
