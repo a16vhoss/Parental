@@ -137,7 +137,7 @@ const GuidesView: React.FC<GuidesViewProps> = ({ childrenList, onAddChild }) => 
                 <div>
                     <h1 className="text-4xl font-black text-text-main dark:text-white tracking-tight flex items-center gap-3">
                         <span className="material-symbols-outlined text-primary text-4xl">menu_book</span>
-                        Guías Parentales
+                        Guías The Baby Care Box
                     </h1>
                     <p className="text-text-muted dark:text-gray-400 mt-2 text-lg">
                         Todo lo que necesitas saber para cuidar a tu bebé en cada etapa.

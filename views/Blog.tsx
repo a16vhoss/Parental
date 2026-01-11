@@ -170,7 +170,7 @@ const Blog: React.FC = () => {
             const newPost = {
                 title: title,
                 content: content,
-                author: 'Parental AI',
+                author: 'The Baby Care Box AI',
                 image_url: `https://source.unsplash.com/800x600/?parenting,${encodeURIComponent(title.split(' ')[0])}&sig=${Date.now()}`
             };
 
@@ -208,7 +208,7 @@ const Blog: React.FC = () => {
                 <div className="p-6 border-b border-gray-100 dark:border-gray-800">
                     <div className="flex justify-between items-center mb-2">
                         <h1 className="text-2xl font-black text-text-main dark:text-white tracking-tight">
-                            Blog Parental
+                            Blog
                         </h1>
                     </div>
                     <p className="text-xs text-gray-400 font-medium">Consejos diarios impulsados por IA</p>

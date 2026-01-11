@@ -71,7 +71,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             {isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
           </h2>
           <p className="text-text-muted">
-            {isSignUp ? 'Únete a Baby Care Box para proteger a tu familia' : 'Bienvenido de nuevo'}
+            {isSignUp ? 'Únete a The Baby Care Box para proteger a tu familia' : 'Bienvenido de nuevo'}
           </p>
         </div>
 

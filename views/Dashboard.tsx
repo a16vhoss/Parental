@@ -366,7 +366,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
               <span className="material-symbols-outlined">rss_feed</span>
             </div>
             <div>
-              <h3 className="font-bold text-[#121716] dark:text-white">Blog Baby Care Box</h3>
+              <h3 className="font-bold text-[#121716] dark:text-white">Blog The Baby Care Box</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">Novedades y artículos recientes</p>
             </div>
           </div>
@@ -378,7 +378,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
           <div className="flex items-center justify-between">
             <h2 className="text-[#121716] dark:text-white text-2xl font-bold tracking-tight flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">menu_book</span>
-              Guías Baby Care Box
+              Guías The Baby Care Box
             </h2>
           </div>
 

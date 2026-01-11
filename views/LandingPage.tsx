@@ -16,8 +16,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <span className="material-symbols-outlined icon-filled" style={{ fontSize: '24px' }}>family_star</span>
               </div>
               <div className="flex flex-col">
-                <h1 className="text-xl font-black tracking-tighter text-text-main dark:text-white leading-none">Baby Care Box</h1>
-                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-gray-400">Guía Parental Digital</p>
+                <h1 className="text-xl font-black tracking-tighter text-text-main dark:text-white leading-none">The Baby Care Box</h1>
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-text-muted dark:text-gray-400">Guía Digital</p>
               </div>
             </div>
             <div className="hidden md:flex items-center gap-8">
@@ -41,10 +41,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 PLATAFORMA DIGITAL
               </div>
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight mb-6 text-text-main dark:text-white">
-                Bienvenido a <span className="text-primary">Baby Care Box</span>.
+                Bienvenido a <span className="text-primary">The Baby Care Box</span>.
               </h2>
               <p className="text-lg text-text-muted dark:text-gray-300 mb-8 max-w-md leading-relaxed">
-                Optimiza el cuidado y seguridad de tu familia con nuestra guía parental diseñada para la crianza moderna.
+                Optimiza el cuidado y seguridad de tu familia con nuestra plataforma diseñada para la crianza moderna.
               </p>
               <div className="flex flex-wrap gap-4 w-full sm:w-auto">
                 <button onClick={onEnterApp} className="h-12 px-8 rounded-xl bg-primary hover:bg-primary-dark text-white font-bold text-base transition-all shadow-xl shadow-primary/25 flex items-center gap-2 w-full sm:w-auto justify-center">
@@ -68,7 +68,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       <section id="features" className="py-16 px-4 sm:px-6 lg:px-8 max-w-[1280px] mx-auto w-full">
         <h2 className="text-3xl font-black tracking-tight text-text-main dark:text-white mb-12 flex items-center gap-3">
           <span className="w-12 h-1 bg-primary rounded-full"></span>
-          ¿Qué es Baby Care Box?
+          ¿Qué es The Baby Care Box?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-8 rounded-2xl bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 hover:shadow-xl transition-all flex flex-col gap-4 group">

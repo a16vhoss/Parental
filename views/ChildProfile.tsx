@@ -193,7 +193,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
   const handleShare = async () => {
     const shareData = {
       title: `Perfil de ${child.name}`,
-      text: `Mira el progreso de ${child.name} (${dynamicAge}) en Guía Parental.`,
+      text: `Mira el progreso de ${child.name} (${dynamicAge}) en The Baby Care Box.`,
       url: window.location.href,
     };
 

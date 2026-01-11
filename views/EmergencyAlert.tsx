@@ -367,7 +367,7 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
             </div>
             <div className="bg-[#f4f6f3] dark:bg-[#1a2a2d] rounded-xl p-4 border border-gray-200 dark:border-gray-700">
               <p className="text-xs text-[#678380] leading-relaxed">
-                <strong>Importante:</strong> Baby Care Box es una red de apoyo comunitario. Para activación oficial de Alerta Amber nacional, contacte a la Fiscalía. La activación de esta alerta notificará a todos los usuarios con la app en un radio de {radius}km.
+                <strong>Importante:</strong> The Baby Care Box es una red de apoyo comunitario. Para activación oficial de Alerta Amber nacional, contacte a la Fiscalía. La activación de esta alerta notificará a todos los usuarios con la app en un radio de {radius}km.
               </p>
             </div>
           </div>

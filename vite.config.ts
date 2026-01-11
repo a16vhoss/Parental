@@ -16,8 +16,8 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         manifest: {
-          name: 'Baby Care Box',
-          short_name: 'Baby Care Box',
+          name: 'The Baby Care Box',
+          short_name: 'The Baby Care Box',
           description: 'Asistente y guía para el cuidado del bebé. Control de salud y alertas.',
           theme_color: '#ffffff',
           background_color: '#ffffff',
