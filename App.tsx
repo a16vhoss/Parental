@@ -17,6 +17,7 @@ import GuideDetail from './views/GuideDetail';
 import ModuleView from './views/ModuleView';
 import Login from './views/Login';
 import AlertDetails from './views/AlertDetails';
+import AlertsFeed from './views/AlertsFeed';
 import Sidebar from './components/Sidebar';
 import MobileNav from './components/MobileNav';
 import { supabase } from './lib/supabase';
@@ -504,6 +505,12 @@ const AppContent: React.FC = () => {
             <Route path="/alerta/detalles/:alertId" element={
               <ProtectedRoute>
                 <AlertDetails />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/alertas-feed" element={
+              <ProtectedRoute>
+                <AlertsFeed />
               </ProtectedRoute>
             } />
 

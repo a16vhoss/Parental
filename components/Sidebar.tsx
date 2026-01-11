@@ -14,6 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, currentPath }) => {
   const navItems = [
     { path: '/dashboard', label: 'Panel de Control', icon: 'grid_view' },
     { icon: 'menu_book', label: 'Guías', path: '/guias' },
+    { icon: 'emergency_home', label: 'Alertas', path: '/alertas-feed' },
     { icon: 'health_and_safety', label: 'Directorio', path: '/directorio' },
     { icon: 'auto_stories', label: 'Blog', path: '/blog' },
     { icon: 'settings', label: 'Configuración', path: '/configuracion' },
