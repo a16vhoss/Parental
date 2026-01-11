@@ -18,8 +18,21 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
   const [clothing, setClothing] = useState('');
   const [isActivating, setIsActivating] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const locationState = useLocation(); // Hook to access state
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setPhotoPreview(objectUrl);
+    }
+  };
 
   useEffect(() => {
     fetchChildren();
@@ -87,6 +100,28 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      let uploadedPhotoUrl = null;
+
+      // 1.5 Upload Photo if exists
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `alerts/${selectedChildId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('alerts') // Ensure this bucket exists or use 'avatars' as fallback if you prefer
+          .upload(filePath, photoFile);
+
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage.from('alerts').getPublicUrl(filePath);
+          uploadedPhotoUrl = publicUrlData.publicUrl;
+        } else {
+          console.warn("Error uploading alert photo:", uploadError);
+          // Proceed without photo if upload fails, or alert user? 
+          // Better to proceed for emergency, maybe log it.
+        }
+      }
+
       // 2. Create Alert
       const { error } = await supabase.from('amber_alerts').insert({
         family_id: (await getUserFamilyId(user.id)),
@@ -98,7 +133,8 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
         radius_km: radius,
         last_seen_time: new Date().toISOString(),
         description: description,
-        clothing_description: clothing
+        clothing_description: clothing,
+        photo_url: uploadedPhotoUrl
       });
 
       if (error) throw error;
@@ -166,6 +202,39 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
               <h3 className="font-bold text-xl mb-1">Detalles de la Desaparición</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="text-sm font-bold block mb-2">Foto Reciente (Opcional pero Recomendada)</label>
+                  <div
+                    onClick={() => document.getElementById('alert-photo-upload')?.click()}
+                    className={`w-full border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all ${photoPreview ? 'border-primary bg-primary/5' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#1a2a2d]'}`}
+                  >
+                    {photoPreview ? (
+                      <div className="relative w-full h-48">
+                        <img src={photoPreview} alt="Preview" className="w-full h-full object-contain rounded-lg" />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setPhotoFile(null); setPhotoPreview(null); }}
+                          className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                        >
+                          <span className="material-symbols-outlined text-sm">close</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-4xl text-gray-400 mb-2">add_a_photo</span>
+                        <p className="text-sm text-gray-500 font-medium">Toca para subir una foto actual</p>
+                        <p className="text-xs text-gray-400 mt-1">Sube una foto de cómo vestía hoy si tienes una</p>
+                      </>
+                    )}
+                    <input
+                      id="alert-photo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoSelect}
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-sm font-bold block mb-1">Descripción de Vestimenta</label>
                   <textarea
