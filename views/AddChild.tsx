@@ -310,8 +310,9 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
                   name="birthWeight"
                   value={formData.birthWeight}
                   onChange={handleChange}
+                  disabled={!!memberToEdit}
                   placeholder="Ej. 3.2"
-                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                  className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all ${memberToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
                 />
               </div>
               <div className="space-y-2">
@@ -321,8 +322,9 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
                   name="birthHeight"
                   value={formData.birthHeight}
                   onChange={handleChange}
+                  disabled={!!memberToEdit}
                   placeholder="Ej. 48"
-                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                  className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all ${memberToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
                 />
               </div>
               <div className="space-y-2">
@@ -332,8 +334,9 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
                   name="birthCity"
                   value={formData.birthCity}
                   onChange={handleChange}
+                  disabled={!!memberToEdit}
                   placeholder="Ej. Madrid"
-                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                  className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all ${memberToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
                 />
               </div>
               <div className="space-y-2">
@@ -343,8 +346,9 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
                   name="birthCountry"
                   value={formData.birthCountry}
                   onChange={handleChange}
+                  disabled={!!memberToEdit}
                   placeholder="Ej. España"
-                  className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
+                  className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all ${memberToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
                 />
               </div>
             </>
