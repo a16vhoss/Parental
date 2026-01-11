@@ -10,7 +10,6 @@ const AlertDetails: React.FC = () => {
     const [alert, setAlert] = useState<any>(null);
     const [child, setChild] = useState<FamilyMember | null>(null);
     const [distance, setDistance] = useState<string>('...');
-    const [distance, setDistance] = useState<string>('...');
     // Removed sighting form state
 
     useEffect(() => {
