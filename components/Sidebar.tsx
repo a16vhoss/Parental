@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, currentPath }) => {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-72 h-full bg-white dark:bg-surface-dark border-r border-gray-100 dark:border-gray-700/50 p-6 justify-between flex-shrink-0 z-20 shadow-sm sticky top-0">
+    <aside className="hidden lg:flex flex-col w-72 h-screen bg-white dark:bg-surface-dark border-r border-gray-100 dark:border-gray-700/50 p-6 justify-between flex-shrink-0 z-20 shadow-sm sticky top-0">
       <div className="flex flex-col gap-8">
         <Link to="/dashboard" className="flex items-center gap-3 px-2">
           <div className="bg-primary/10 p-2 rounded-xl">
