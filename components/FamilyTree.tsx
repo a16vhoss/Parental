@@ -60,65 +60,66 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMem
     const children = members.filter(m => m.role === 'Hijo/a');
 
     return (
-        <div className="bg-white dark:bg-surface-dark rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-800 overflow-x-auto">
+        <div className="bg-white dark:bg-surface-dark rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-800">
             <h3 className="text-lg font-bold flex items-center gap-2 mb-10 text-[#121716] dark:text-white sticky left-0">
                 <span className="material-symbols-outlined text-primary">diversity_2</span> Árbol Familiar
             </h3>
 
-            <div className="min-w-[500px] mx-auto flex flex-col items-center relative py-4">
+            <div className="w-full overflow-x-auto flex justify-center custom-scrollbar">
+                <div className="min-w-max px-4 flex flex-col items-center relative py-4">
 
-                {/* Connector Lines Logic - Simplified for 3 levels */}
+                    {/* Connector Lines Logic - Simplified for 3 levels */}
 
-                {/* Generation 1: Grandparents */}
-                <div className="flex justify-center gap-12 relative z-10">
-                    {/* Ensure at least 2 slots for grandparents visually, filling with existing or placeholders */}
-                    <div className="flex gap-6">
-                        {grandparents.length > 0 ? (
-                            grandparents.map(gp => <NodeCard key={gp.id} member={gp} rolePlaceholder="Abuelo/a" onAddMember={onAddMember} onEditMember={onEditMember} />)
+                    {/* Generation 1: Grandparents */}
+                    <div className="flex justify-center gap-12 relative z-10">
+                        {/* Ensure at least 2 slots for grandparents visually, filling with existing or placeholders */}
+                        <div className="flex gap-6">
+                            {grandparents.length > 0 ? (
+                                grandparents.map(gp => <NodeCard key={gp.id} member={gp} rolePlaceholder="Abuelo/a" onAddMember={onAddMember} onEditMember={onEditMember} />)
+                            ) : (
+                                <>
+                                    <NodeCard rolePlaceholder="Abuela" onAddMember={onAddMember} onEditMember={onEditMember} />
+                                    <NodeCard rolePlaceholder="Abuelo" onAddMember={onAddMember} onEditMember={onEditMember} />
+                                </>
+                            )}
+                            {grandparents.length > 0 && grandparents.length < 4 && (
+                                <NodeCard rolePlaceholder="Abuelo/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Vertical Line 1 -> 2 */}
+                    <div className="h-10 w-px bg-gray-200 dark:bg-gray-700 my-2"></div>
+
+                    {/* Generation 2: Parents */}
+                    <div className="flex justify-center gap-12 relative z-10">
+                        {parents.length > 0 ? (
+                            parents.map(p => <NodeCard key={p.id} member={p} rolePlaceholder="Padre/Madre" onAddMember={onAddMember} onEditMember={onEditMember} />)
                         ) : (
                             <>
-                                <NodeCard rolePlaceholder="Abuela" onAddMember={onAddMember} onEditMember={onEditMember} />
-                                <NodeCard rolePlaceholder="Abuelo" onAddMember={onAddMember} onEditMember={onEditMember} />
+                                <NodeCard rolePlaceholder="Mamá" onAddMember={onAddMember} onEditMember={onEditMember} />
+                                <NodeCard rolePlaceholder="Papá" onAddMember={onAddMember} onEditMember={onEditMember} />
                             </>
                         )}
-                        {/* Always allow adding more if existing are displayed, but maybe limit visually? For now just append add button if < 4 */}
-                        {grandparents.length > 0 && grandparents.length < 4 && (
-                            <NodeCard rolePlaceholder="Abuelo/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+                        {parents.length > 0 && parents.length < 2 && (
+                            <NodeCard rolePlaceholder="Padre/Madre" onAddMember={onAddMember} onEditMember={onEditMember} />
                         )}
                     </div>
-                </div>
 
-                {/* Vertical Line 1 -> 2 */}
-                <div className="h-10 w-px bg-gray-200 dark:bg-gray-700 my-2"></div>
+                    {/* Vertical Line 2 -> 3 */}
+                    <div className="h-10 w-px bg-gray-200 dark:bg-gray-700 my-2"></div>
 
-                {/* Generation 2: Parents */}
-                <div className="flex justify-center gap-12 relative z-10">
-                    {parents.length > 0 ? (
-                        parents.map(p => <NodeCard key={p.id} member={p} rolePlaceholder="Padre/Madre" onAddMember={onAddMember} onEditMember={onEditMember} />)
-                    ) : (
-                        <>
-                            <NodeCard rolePlaceholder="Mamá" onAddMember={onAddMember} onEditMember={onEditMember} />
-                            <NodeCard rolePlaceholder="Papá" onAddMember={onAddMember} onEditMember={onEditMember} />
-                        </>
-                    )}
-                    {parents.length > 0 && parents.length < 2 && (
-                        <NodeCard rolePlaceholder="Padre/Madre" onAddMember={onAddMember} onEditMember={onEditMember} />
-                    )}
-                </div>
+                    {/* Generation 3: Children */}
+                    <div className="relative pt-6 border-t border-gray-200 dark:border-gray-700 w-full max-w-md flex justify-center">
+                        {/* Curved lines to children optional, keeping it simple for now */}
+                        <div className="-mt-6 absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 border-x border-t border-gray-200 dark:border-gray-700 rounded-t-xl" style={{ display: children.length > 1 ? 'block' : 'none' }}></div>
 
-                {/* Vertical Line 2 -> 3 */}
-                <div className="h-10 w-px bg-gray-200 dark:bg-gray-700 my-2"></div>
-
-                {/* Generation 3: Children */}
-                <div className="relative pt-6 border-t border-gray-200 dark:border-gray-700 w-full max-w-md flex justify-center">
-                    {/* Curved lines to children optional, keeping it simple for now */}
-                    <div className="-mt-6 absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 border-x border-t border-gray-200 dark:border-gray-700 rounded-t-xl" style={{ display: children.length > 1 ? 'block' : 'none' }}></div>
-
-                    <div className="flex justify-center gap-6 relative z-10">
-                        {children.map(child => (
-                            <NodeCard key={child.id} member={child} rolePlaceholder="Hijo/a" onAddMember={onAddMember} onEditMember={onEditMember} />
-                        ))}
-                        <NodeCard rolePlaceholder="Hermano/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+                        <div className="flex justify-center gap-6 relative z-10">
+                            {children.map(child => (
+                                <NodeCard key={child.id} member={child} rolePlaceholder="Hijo/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+                            ))}
+                            <NodeCard rolePlaceholder="Hermano/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+                        </div>
                     </div>
                 </div>
             </div>
