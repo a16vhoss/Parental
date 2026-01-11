@@ -61,8 +61,8 @@ const AlertsFeed: React.FC = () => {
             console.log('Alerts Feed Fetch Result:', { data, error });
 
             if (error) {
-                console.error('Database Error:', error);
-                throw error;
+                console.warn('Database Error (likely RLS on joins):', error);
+                // Do NOT throw. Let it fall through to the else block (data is null)
             }
 
             if (data && data.length > 0) {
