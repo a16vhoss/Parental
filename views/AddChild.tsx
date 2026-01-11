@@ -138,8 +138,11 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
     onSave(newMember);
   };
 
-  // Filter roles: If adding new (no memberToEdit), only allow 'Hijo/a'. If editing, allow all (to preserve existing data or fix mistakes)
-  const availableRoles: FamilyRole[] = memberToEdit ? ['Hijo/a', 'Padre/Madre', 'Abuelo/a', 'Tío/a', 'Primo/a', 'Cuidador/a'] : ['Hijo/a'];
+  // Allow all roles for new members - family members don't need to be app users
+  const availableRoles: FamilyRole[] = ['Hijo/a', 'Padre/Madre', 'Abuelo/a', 'Tío/a', 'Primo/a', 'Cuidador/a'];
+
+  // Determine if this is a child (needs detailed vitals) or other family member
+  const isChildRole = formData.role === 'Hijo/a';
 
   return (
     <main className="flex-grow p-4 md:p-8 lg:px-12 max-w-[800px] mx-auto w-full">
@@ -152,10 +155,10 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
         </button>
         <div>
           <h1 className="text-3xl font-black text-[#121716] dark:text-white tracking-tight">
-            {memberToEdit ? 'Editar Familiar' : 'Agregar Hijo/a'}
+            {memberToEdit ? 'Editar Familiar' : 'Agregar Familiar'}
           </h1>
           <p className="text-[#678380] dark:text-gray-400 mt-1">
-            {memberToEdit ? 'Actualiza los datos de este miembro.' : 'Registra un nuevo hijo/a a tu familia.'}
+            {memberToEdit ? 'Actualiza los datos de este miembro.' : 'Registra un nuevo miembro a tu familia.'}
           </p>
         </div>
       </div>
@@ -216,19 +219,20 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
               className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
             />
           </div>
-          {memberToEdit && (
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Parentesco / Rol</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all font-bold text-primary"
-              >
-                {availableRoles.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
-          )}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Parentesco / Rol</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all font-bold text-primary"
+            >
+              {availableRoles.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+            {!isChildRole && (
+              <p className="text-[10px] text-gray-400">Este familiar no necesita tener cuenta en la app</p>
+            )}
+          </div>
 
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Sexo</label>
@@ -255,7 +259,9 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
 
           {formData.role !== 'Hijo/a' && (
             <div className="space-y-2 md:col-span-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Correo Electrónico (para vincular cuenta)</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Correo Electrónico <span className="text-xs font-normal normal-case">(opcional)</span>
+              </label>
               <input
                 type="email"
                 name="email"
@@ -266,7 +272,7 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
               />
               <p className="text-[10px] text-gray-400">
                 <span className="material-symbols-outlined text-[10px] align-middle mr-1">info</span>
-                Si este familiar ya tiene cuenta, se vinculará automáticamente.
+                Solo necesario si este familiar usa la app. Si no, puede quedar vacío.
               </p>
             </div>
           )}
