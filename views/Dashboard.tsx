@@ -210,50 +210,20 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
               {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
             </p>
 
-            {isSearchOpen ? (
-              <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="relative flex-1 max-w-md">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-                  <input
-                    autoFocus
-                    type="text"
-                    placeholder="Buscar guías, consejos..."
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-surface-dark border-none shadow-sm focus:ring-2 focus:ring-primary/50 outline-none text-[#121716] dark:text-white"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      <span className="material-symbols-outlined text-sm">close</span>
-                    </button>
-                  )}
-                </div>
-                <button
-                  onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
-                  className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full"
-                >
-                  <span className="text-xs font-bold">Cancelar</span>
-                </button>
-              </div>
-            ) : (
-              <>
-                <h1 className="text-[#121716] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
-                  Buenos días, <span className="text-primary">{userName}</span>
-                </h1>
-                <p className="text-[#678380] dark:text-gray-300 text-base font-normal">Aquí tienes el resumen familiar de hoy.</p>
-              </>
-            )}
+            <>
+              <h1 className="text-[#121716] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
+                Buenos días, <span className="text-primary">{userName}</span>
+              </h1>
+              <p className="text-[#678380] dark:text-gray-300 text-base font-normal">Aquí tienes el resumen familiar de hoy.</p>
+            </>
           </div>
 
           <div className="flex bg-white dark:bg-surface-dark md:bg-transparent rounded-2xl p-2 md:p-0 shadow-sm md:shadow-none gap-2 relative">
             <button
-              onClick={(e) => { e.stopPropagation(); setIsSearchOpen(!isSearchOpen); }}
-              className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all ${isSearchOpen ? 'bg-primary text-white' : 'bg-white dark:bg-surface-dark text-[#121716] dark:text-white'}`}
+              onClick={(e) => { e.stopPropagation(); navigate('/alertas-feed'); }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all bg-white dark:bg-surface-dark text-red-500`}
             >
-              <span className="material-symbols-outlined">search</span>
+              <span className="material-symbols-outlined">warning</span>
             </button>
 
             <div className="relative">
@@ -358,6 +328,23 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
             </div>
           </div>
         </section>
+
+        {/* Mobile Only: Blog Access */}
+        <div
+          onClick={() => navigate('/blog')}
+          className="md:hidden bg-white dark:bg-surface-dark border border-gray-100 dark:border-gray-700 rounded-2xl p-4 flex items-center justify-between shadow-sm cursor-pointer active:scale-95 transition-all"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+              <span className="material-symbols-outlined">rss_feed</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-[#121716] dark:text-white">Blog Parental</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Novedades y artículos recientes</p>
+            </div>
+          </div>
+          <span className="material-symbols-outlined text-gray-400">chevron_right</span>
+        </div>
 
         {/* Guides Section - Simple Link */}
         <section className="flex flex-col gap-4">
