@@ -1,3 +1,4 @@
+```
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import ReactMarkdown from 'react-markdown';
@@ -47,74 +48,44 @@ const ChatBot: React.FC = () => {
         setInputText('');
         setIsLoading(true);
 
-    } catch (error) {
-        console.error("Error calling Gemini:", error);
-        const errorMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            role: 'model',
-            content: "Lo siento, tuve un problema al conectarme con la IA. Verifica tu conexión.",
-            timestamp: new Date()
-        };
-        setMessages(prev => [...prev, errorMsg]);
-    } finally {
-        setIsLoading(false);
-    }
-};
+        try {
+            const genAI = new GoogleGenerativeAI(API_KEY);
+            const model = genAI.getGenerativeModel({
+                model: "gemini-1.5-flash",
+                systemInstruction: "Eres un asistente virtual experto en crianza y desarrollo infantil para la aplicación 'Guía Parental'. Tu tono es amable, empático y profesional. Proporciona consejos prácticos basados en evidencia, pero siempre recuerda al usuario consultar a un pediatra para temas médicos. Respuestas concisas y fáciles de leer. Si te preguntan sobre la app, ayuda a navegar por las secciones: Alertas Amber, Guías de Desarrollo, Directorio, Perfil del Niño, Calendario de Salud."
+            });
 
+            const chat = model.startChat({
+                history: messages.filter(m => m.id !== 'welcome').map(m => ({
+                    role: m.role,
+                    parts: [{ text: m.content }]
+                })),
+            });
 
-const handleSend = async () => {
-    if (!inputText.trim() || !API_KEY) return;
+            const result = await chat.sendMessage(inputText);
+            const response = await result.response;
+            const text = response.text();
 
-    const userMsg: Message = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: inputText,
-        timestamp: new Date()
-    };
+            const botMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'model',
+                content: text,
+                timestamp: new Date()
+            };
 
-    setMessages(prev => [...prev, userMsg]);
-    setInputText('');
-    setIsLoading(true);
-
-    try {
-        const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            systemInstruction: "Eres un asistente virtual experto en crianza y desarrollo infantil para la aplicación 'Guía Parental'. Tu tono es amable, empático y profesional. Proporciona consejos prácticos basados en evidencia, pero siempre recuerda al usuario consultar a un pediatra para temas médicos. Respuestas concisas y fáciles de leer. Si te preguntan sobre la app, ayuda a navegar por las secciones: Alertas Amber, Guías de Desarrollo, Directorio, Perfil del Niño, Calendario de Salud."
-        });
-
-        const chat = model.startChat({
-            history: messages.filter(m => m.id !== 'welcome').map(m => ({
-                role: m.role,
-                parts: [{ text: m.content }]
-            })),
-        });
-
-        const result = await chat.sendMessage(inputText);
-        const response = await result.response;
-        const text = response.text();
-
-        const botMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            role: 'model',
-            content: text,
-            timestamp: new Date()
-        };
-
-        setMessages(prev => [...prev, botMsg]);
-    } catch (error) {
-        console.error("Error calling Gemini:", error);
-        const errorMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            role: 'model',
-            content: "Lo siento, tuve un problema al conectarme con la IA. Por favor verifica tu conexión.",
-            timestamp: new Date()
-        };
-        setMessages(prev => [...prev, errorMsg]);
-    } finally {
-        setIsLoading(false);
-    }
-};
+            setMessages(prev => [...prev, botMsg]);
+        } catch (error) {
+            console.error("Error calling Gemini:", error);
+            const errorMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'model',
+                content: "Lo siento, tuve un problema al conectarme con la IA. Por favor verifica tu conexión.",
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
 const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -156,20 +127,21 @@ return (
                     {messages.map((msg) => (
                         <div
                             key={msg.id}
-                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                            className={`flex ${ msg.role === 'user' ? 'justify-end' : 'justify-start' } `}
                         >
                             <div
-                                className={`max-w-[85%] rounded-2xl p-3 text-sm shadow-sm ${msg.role === 'user'
-                                    ? 'bg-primary text-white rounded-br-none'
-                                    : 'bg-white dark:bg-[#2A302E] dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-bl-none'
-                                    }`}
+                                className={`max - w - [85 %] rounded - 2xl p - 3 text - sm shadow - sm ${
+    msg.role === 'user'
+    ? 'bg-primary text-white rounded-br-none'
+    : 'bg-white dark:bg-[#2A302E] dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-bl-none'
+} `}
                             >
                                 <div className="prose prose-sm dark:prose-invert max-w-none">
                                     <ReactMarkdown>
                                         {msg.content}
                                     </ReactMarkdown>
                                 </div>
-                                <p className={`text-[10px] mt-1 text-right ${msg.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
+                                <p className={`text - [10px] mt - 1 text - right ${ msg.role === 'user' ? 'text-white/70' : 'text-gray-400' } `}>
                                     {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                             </div>
@@ -215,8 +187,9 @@ return (
         {/* FAB TRIGGER */}
         <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`group flex items-center justify-center w-14 h-14 rounded-full shadow-xl transition-all duration-300 pointer-events-auto ${isOpen ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200 rotate-90' : 'bg-primary text-white hover:scale-110 hover:shadow-primary/30'
-                }`}
+            className={`group flex items - center justify - center w - 14 h - 14 rounded - full shadow - xl transition - all duration - 300 pointer - events - auto ${
+    isOpen ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200 rotate-90' : 'bg-primary text-white hover:scale-110 hover:shadow-primary/30'
+} `}
         >
             <span className="material-symbols-outlined text-3xl">
                 {isOpen ? 'close' : 'smart_toy'}
