@@ -9,7 +9,7 @@ interface EmergencyAlertProps {
 }
 
 const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
-  const [pin, setPin] = useState(['', '', '', '']);
+  // const [pin, setPin] = useState(['', '', '', '']); // Removed for speed
   const [children, setChildren] = useState<FamilyMember[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number, lng: number } | null>(null);
@@ -65,15 +65,7 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
     }
   };
 
-  const handlePinChange = (val: string, index: number) => {
-    const newPin = [...pin];
-    newPin[index] = val.slice(0, 1);
-    setPin(newPin);
-    if (val && index < 3) {
-      const nextInput = document.getElementById(`pin-${index + 1}`);
-      nextInput?.focus();
-    }
-  };
+  // Removed handlePinChange
 
   const selectedChild = children.find(c => c.id === selectedChildId);
 
@@ -82,25 +74,9 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
       if (!selectedChildId || !location) return alert('Datos incompletos');
       setIsActivating(true);
 
-      // 1. Verify PIN
+      // 1. Verify Authentication
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      const userPin = user.user_metadata?.emergency_pin;
-      const inputPin = pin.join('');
-
-      if (!userPin) {
-        alert('No has configurado un PIN de seguridad. Ve a Configuración.');
-        setIsActivating(false);
-        return;
-      }
-
-      if (userPin !== inputPin) {
-        alert('PIN Incorrecto');
-        setIsActivating(false);
-        setPin(['', '', '', '']);
-        return;
-      }
 
       // 2. Create Alert
       const { error } = await supabase.from('amber_alerts').insert({
@@ -272,29 +248,22 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
             </div>
 
             <div className="bg-accent-peach/20 border border-accent-peach rounded-xl p-6">
-              <h3 className="font-bold text-xl mb-4">Verificación de Seguridad</h3>
-              <p className="text-xs text-gray-600 mb-4">Ingresa tu PIN de 4 dígitos configurado en ajustes.</p>
-              <div className="flex gap-2 justify-center mb-4">
-                {pin.map((p, i) => (
-                  <input
-                    key={i}
-                    id={`pin-${i}`}
-                    type="password"
-                    value={p}
-                    onChange={(e) => handlePinChange(e.target.value, i)}
-                    className="w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 border-primary bg-white dark:bg-[#1a2a2d]"
-                  />
-                ))}
-              </div>
+              <h3 className="font-bold text-xl mb-2 text-red-600">⚠ ALERTA INMEDIATA</h3>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-6 font-medium">
+                Al activar esta alerta, se enviará una notificación PUSH prioritaria a todos los usuarios en el radio seleccionado.
+                <br /><br />
+                <strong>Esta acción es irreversible y debe usarse SOLO en casos de emergencia real.</strong>
+              </p>
+
               <button
                 onClick={handleActivate}
                 disabled={isActivating || !selectedChildId}
-                className="w-full mt-2 bg-rose-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-rose-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-2 bg-rose-600 text-white font-bold py-5 rounded-xl flex items-center justify-center gap-3 hover:bg-rose-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-lg animate-pulse"
               >
                 {isActivating ? (
-                  <span className="material-symbols-outlined animate-spin">sync</span>
+                  <span className="material-symbols-outlined animate-spin text-2xl">sync</span>
                 ) : (
-                  <span className="material-symbols-outlined">campaign</span>
+                  <span className="material-symbols-outlined text-2xl">campaign</span>
                 )}
                 {isActivating ? 'ACTIVANDO...' : 'ACTIVAR ALERTA AHORA'}
               </button>
