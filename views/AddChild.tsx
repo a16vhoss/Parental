@@ -122,16 +122,7 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) =
               {roles.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Edad o Etapa</label>
-            <input
-              name="age"
-              value={formData.age}
-              onChange={handleChange}
-              placeholder="Ej. 30 años o 5 meses"
-              className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
-            />
-          </div>
+
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Sexo</label>
             <select

@@ -58,6 +58,8 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMem
     const grandparents = members.filter(m => m.role === 'Abuelo/a');
     const parents = members.filter(m => m.role === 'Padre/Madre');
     const children = members.filter(m => m.role === 'Hijo/a');
+    const uncles = members.filter(m => m.role === 'Tío/a');
+    const cousins = members.filter(m => m.role === 'Primo/a');
 
     return (
         <div className="bg-white dark:bg-surface-dark rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-800">
@@ -119,6 +121,15 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMem
                                 <NodeCard key={child.id} member={child} rolePlaceholder="Hijo/a" onAddMember={onAddMember} onEditMember={onEditMember} />
                             ))}
                             <NodeCard rolePlaceholder="Hermano/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+
+                            {/* Cousins Section */}
+                            {cousins.length > 0 && (
+                                <>
+                                    <div className="w-px bg-gray-200 dark:bg-gray-700 h-12 self-center mx-2"></div>
+                                    {cousins.map(c => <NodeCard key={c.id} member={c} rolePlaceholder="Primo/a" onAddMember={onAddMember} onEditMember={onEditMember} />)}
+                                </>
+                            )}
+                            <NodeCard rolePlaceholder="Primo/a" onAddMember={onAddMember} onEditMember={onEditMember} />
                         </div>
                     </div>
                 </div>
