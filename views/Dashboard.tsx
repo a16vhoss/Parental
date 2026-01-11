@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 // Changed Baby to FamilyMember to fix import error
 import { FamilyMember } from '../types';
 import { getMemberIcon } from '../utils/memberUtils';
-import { STAGES } from '../types/guidesTypes';
-import { getModulesByStage } from '../data/guidesData';
+
 
 interface DashboardProps {
   userName: string;
@@ -121,47 +120,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
     return guides;
   }, [childrenList, searchQuery]);
 
-  // Compute personalized guides based on children's ages
-  const personalizedGuides = useMemo(() => {
-    console.log('DEBUG: childrenList', childrenList);
-    console.log('DEBUG: STAGES', STAGES);
 
-    const parseToMonths = (ageStr: string, dob?: string): number => {
-      if (dob) {
-        const birthDate = new Date(dob);
-        const today = new Date();
-        return Math.max(0, (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth()));
-      }
-      const age = (ageStr || '').toLowerCase().trim();
-      if (age.includes('mes')) return parseInt(age.match(/\d+/)?.[0] || '1');
-      if (age.includes('año')) return parseInt(age.match(/\d+/)?.[0] || '1') * 12;
-      if (age === 'nuevo' || age === 'recién nacido' || age === 'recien nacido' || age === '') return 0;
-      return 0;
-    };
-
-    const result: { stage: typeof STAGES[0]; childName: string; childId: string; modules: number }[] = [];
-
-    // childrenList is already filtered to Hijo/a role in App.tsx
-    childrenList.forEach(child => {
-      const ageMonths = parseToMonths(child.age, child.vitals?.dob);
-      console.log('DEBUG: child', child.name, 'age:', child.age, 'ageMonths:', ageMonths);
-
-      const stage = STAGES.find(s => ageMonths >= s.minMonths && ageMonths < s.maxMonths);
-      console.log('DEBUG: found stage', stage?.name);
-
-      if (stage) {
-        result.push({
-          stage,
-          childName: child.name.split(' ')[0],
-          childId: child.id,
-          modules: getModulesByStage(stage.id).length
-        });
-      }
-    });
-
-    console.log('DEBUG: result', result);
-    return result;
-  }, [childrenList]);
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -340,59 +299,56 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
           </div>
         </section>
 
-        <section className="flex flex-col gap-6">
+        {/* Guides Section - Simple Link */}
+        <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-[#121716] dark:text-white text-2xl font-bold tracking-tight flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">auto_awesome</span>
-              Guías para tus hijos
+              <span className="material-symbols-outlined text-primary">menu_book</span>
+              Guías Parentales
             </h2>
-            <button onClick={() => navigate('/guias')} className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] hover:underline">
-              Ver todas
-            </button>
           </div>
 
-          {personalizedGuides.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {personalizedGuides.map((item, index) => (
-                <div
-                  key={`${item.stage.id}-${item.childId}-${index}`}
-                  onClick={() => navigate(`/guias/${item.stage.id}`)}
-                  className="group bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all border border-gray-100 dark:border-gray-700 cursor-pointer relative overflow-hidden"
-                >
-                  <div className="absolute -top-10 -right-10 size-32 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: item.stage.color }} />
-                  <div className="relative z-10 flex items-center gap-4">
-                    <div className="size-14 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0" style={{ backgroundColor: item.stage.color }}>
-                      <span className="material-symbols-outlined text-2xl icon-filled">{item.stage.icon}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-[#121716] dark:text-white leading-tight">{item.stage.name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{item.stage.description}</p>
-                      <div className="mt-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${item.stage.color}15`, color: item.stage.color }}>
-                          <span className="material-symbols-outlined text-xs">child_care</span>
-                          Para: {item.childName}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="material-symbols-outlined text-gray-300 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
-                  </div>
-                  <div className="relative z-10 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700/50 flex items-center justify-between">
-                    <span className="text-xs text-gray-400 font-medium">{item.modules} módulos disponibles</span>
-                    <span className="text-xs font-bold text-primary">Explorar →</span>
-                  </div>
-                </div>
-              ))}
+          <div
+            onClick={() => navigate('/guias')}
+            className="group bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5 rounded-2xl p-6 border border-primary/20 hover:border-primary/40 cursor-pointer transition-all hover:shadow-lg relative overflow-hidden"
+          >
+            {/* Decorative gradient */}
+            <div className="absolute -top-20 -right-20 size-40 rounded-full blur-3xl bg-primary/20 group-hover:opacity-50 transition-opacity" />
+
+            <div className="relative z-10 flex items-center gap-5">
+              <div className="size-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg">
+                <span className="material-symbols-outlined text-3xl icon-filled">auto_stories</span>
+              </div>
+
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-[#121716] dark:text-white mb-1">Explora nuestras guías</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  8 etapas de desarrollo con contenido especializado para cada fase de crecimiento de tu hijo.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 bg-white dark:bg-surface-dark px-4 py-2 rounded-xl shadow group-hover:bg-primary group-hover:text-white transition-all">
+                <span className="text-sm font-bold">Abrir</span>
+                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
             </div>
-          ) : (
-            <div className="py-12 text-center bg-white dark:bg-surface-dark rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-              <span className="material-symbols-outlined text-5xl text-gray-300 mb-2">menu_book</span>
-              <p className="text-gray-500 font-bold">Agrega hijos para ver guías personalizadas</p>
-              <button onClick={onAddChild} className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold text-sm">
-                <span className="material-symbols-outlined text-sm">person_add</span>
-                Agregar Hijo
-              </button>
+
+            {/* Stats */}
+            <div className="relative z-10 mt-5 pt-4 border-t border-primary/10 flex gap-6">
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <span className="material-symbols-outlined text-primary text-lg">school</span>
+                <span><b className="text-[#121716] dark:text-white">8</b> etapas</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <span className="material-symbols-outlined text-primary text-lg">library_books</span>
+                <span><b className="text-[#121716] dark:text-white">80</b> módulos</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <span className="material-symbols-outlined text-primary text-lg">checklist</span>
+                <span>Checklists interactivos</span>
+              </div>
             </div>
-          )}
+          </div>
         </section>
       </div>
     </div>
