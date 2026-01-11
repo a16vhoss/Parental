@@ -519,6 +519,12 @@ const AppContent: React.FC = () => {
               </ProtectedRoute>
             } />
 
+            <Route path="/salud" element={
+              <ProtectedRoute>
+                <HealthView />
+              </ProtectedRoute>
+            } />
+
             {/* Fallback route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
