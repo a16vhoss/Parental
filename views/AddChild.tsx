@@ -135,7 +135,8 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
     onSave(newMember);
   };
 
-  const roles: FamilyRole[] = ['Hijo/a', 'Padre/Madre', 'Abuelo/a', 'Tío/a', 'Primo/a', 'Cuidador/a'];
+  // Filter roles: If adding new (no memberToEdit), only allow 'Hijo/a'. If editing, allow all (to preserve existing data or fix mistakes)
+  const availableRoles: FamilyRole[] = memberToEdit ? ['Hijo/a', 'Padre/Madre', 'Abuelo/a', 'Tío/a', 'Primo/a', 'Cuidador/a'] : ['Hijo/a'];
 
   return (
     <main className="flex-grow p-4 md:p-8 lg:px-12 max-w-[800px] mx-auto w-full">
@@ -148,10 +149,10 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
         </button>
         <div>
           <h1 className="text-3xl font-black text-[#121716] dark:text-white tracking-tight">
-            {memberToEdit ? 'Editar Familiar' : 'Agregar Miembro Familiar'}
+            {memberToEdit ? 'Editar Familiar' : 'Agregar Hijo/a'}
           </h1>
           <p className="text-[#678380] dark:text-gray-400 mt-1">
-            {memberToEdit ? 'Actualiza los datos de este miembro.' : 'Registra a un nuevo integrante de tu círculo familiar.'}
+            {memberToEdit ? 'Actualiza los datos de este miembro.' : 'Registra un nuevo hijo/a a tu familia.'}
           </p>
         </div>
       </div>
@@ -218,9 +219,10 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all font-bold text-primary"
+              disabled={!memberToEdit} // Disable if adding new (forced to Hijo/a)
+              className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all font-bold text-primary ${!memberToEdit ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {roles.map(r => <option key={r} value={r}>{r}</option>)}
+              {availableRoles.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
 

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { FamilyRole } from '../types';
 
 interface SettingsProps {
   isDarkMode: boolean;
@@ -22,6 +23,12 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
   const [hasFamily, setHasFamily] = useState(false);
   const [isLoadingFamily, setIsLoadingFamily] = useState(false);
   const [familyMessage, setFamilyMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  // Join Flow State
+  const [isJoiningStep, setIsJoiningStep] = useState(false);
+  const [foundFamily, setFoundFamily] = useState<{ id: string, name: string } | null>(null);
+  const [selectedRole, setSelectedRole] = useState<FamilyRole>('Tío/a');
+  const availableRoles: FamilyRole[] = ['Padre/Madre', 'Abuelo/a', 'Tío/a', 'Primo/a', 'Cuidador/a'];
 
   useEffect(() => {
     fetchFamilyStatus();
@@ -125,42 +132,79 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
     }
   };
 
-  const handleJoinFamily = async () => {
+  const verifyCode = async () => {
     if (!joinCode) return;
+    setIsLoadingFamily(true);
+    setFamilyMessage(null);
+    try {
+      const { data: family, error } = await supabase
+        .from('families')
+        .select('id, name')
+        .eq('invite_code', joinCode.toUpperCase())
+        .single();
+
+      if (error || !family) throw new Error('Código inválido o grupo no encontrado.');
+
+      setFoundFamily(family);
+      setIsJoiningStep(true);
+
+    } catch (err: any) {
+      setFamilyMessage({ type: 'error', text: err.message });
+    } finally {
+      setIsLoadingFamily(false);
+    }
+  };
+
+  const confirmJoinFamily = async () => {
+    if (!foundFamily) return;
     setIsLoadingFamily(true);
     setFamilyMessage(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
-      // 1. Find Family by Code
-      const { data: family, error: findError } = await supabase
-        .from('families')
-        .select('id, name, invite_code')
-        .eq('invite_code', joinCode.toUpperCase())
-        .single();
-
-      if (findError || !family) throw new Error('Código inválido o grupo no encontrado.');
-
-      // 2. Update Profile
+      // 1. Update Profile
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ family_id: family.id, role: 'member' })
+        .update({ family_id: foundFamily.id, role: 'member' })
         .eq('id', user.id);
 
       if (profileError) throw profileError;
 
-      // 3. Update My Existing Family Members to this family ID (Merge)
+      // 2. Create Family Member Record for THIS User (Self)
+      // This ensures they appear in the Family Tree as the role they selected
+      const { error: memberError } = await supabase
+        .from('family_members')
+        .insert({
+          name: user.user_metadata?.full_name || 'Nuevo Miembro',
+          role: selectedRole,
+          age: 'Adulto', // Default
+          status: '👋 Se unió recientemente',
+          avatar: user.user_metadata?.avatar_url || '',
+          email: user.email,
+          family_id: foundFamily.id,
+          user_id: user.id, // Link to auth user
+          created_by: user.id, // Self-managed
+          vitals: { sex: 'Unknown' } // Minimal required
+        });
+
+      if (memberError) {
+        console.error("Error creating member record:", memberError);
+        // Continue anyway, profile is linked
+      }
+
+      // 3. Update any OTHER orphan members (optional cleanup)
       await supabase
         .from('family_members')
-        .update({ family_id: family.id })
+        .update({ family_id: foundFamily.id })
         .eq('user_id', user.id)
         .is('family_id', null);
 
       setHasFamily(true);
-      setFamilyName(family.name);
-      setFamilyCode(family.invite_code);
-      setFamilyMessage({ type: 'success', text: `¡Te uniste a ${family.name}!` });
+      setFamilyName(foundFamily.name);
+      setFamilyCode(joinCode.toUpperCase());
+      setFamilyMessage({ type: 'success', text: `¡Te uniste a ${foundFamily.name} como ${selectedRole}!` });
+      setIsJoiningStep(false);
 
     } catch (err: any) {
       setFamilyMessage({ type: 'error', text: err.message });
@@ -287,13 +331,50 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, onBac
                   maxLength={6}
                 />
                 <button
-                  onClick={handleJoinFamily}
+                  onClick={verifyCode}
                   disabled={isLoadingFamily || !joinCode}
                   className="bg-gray-900 dark:bg-white text-white dark:text-black font-bold px-6 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   Unirse
                 </button>
               </div>
+
+              {/* Join Modal / Step 2 */}
+              {isJoiningStep && foundFamily && (
+                <div className="mt-4 bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800 animate-in fade-in slide-in-from-top-2">
+                  <h4 className="font-bold text-[#121716] dark:text-white mb-2">¡Familia encontrada!</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Te vas a unir a <strong className="text-indigo-600">{foundFamily.name}</strong>.</p>
+
+                  <div className="space-y-2 mb-4">
+                    <label className="text-xs font-bold text-gray-500 uppercase">¿Qué parentesco tienes con el niño/a?</label>
+                    <select
+                      value={selectedRole}
+                      onChange={(e) => setSelectedRole(e.target.value as FamilyRole)}
+                      className="w-full bg-white dark:bg-surface-dark border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-sm font-bold text-primary focus:ring-2 focus:ring-primary"
+                    >
+                      {availableRoles.map(role => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsJoiningStep(false)}
+                      className="flex-1 py-2 text-xs font-bold text-gray-500 hover:bg-white/50 rounded-lg"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={confirmJoinFamily}
+                      disabled={isLoadingFamily}
+                      className="flex-1 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-dark shadow-sm"
+                    >
+                      {isLoadingFamily ? 'Uniéndome...' : 'Confirmar y Unirme'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </section>
