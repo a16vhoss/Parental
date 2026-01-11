@@ -542,7 +542,7 @@ const AppContent: React.FC = () => {
         )}
       </div>
       {/* GLOBAL CHATBOT */}
-      {userId && <ChatBot />}
+      {/* ChatBot Removed temporarily */}
 
       {showAddChild && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
