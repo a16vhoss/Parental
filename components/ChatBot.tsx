@@ -47,32 +47,45 @@ const ChatBot: React.FC = () => {
         setInputText('');
         setIsLoading(true);
 
+        const systemInstruction = "Eres un asistente virtual experto en crianza y desarrollo infantil para la aplicación 'Guía Parental'. Tu tono es amable, empático y profesional. Proporciona consejos prácticos basados en evidencia, pero siempre recuerda al usuario consultar a un pediatra para temas médicos. Respuestas concisas y fáciles de leer. Si te preguntan sobre la app, ayuda a navegar por las secciones: Alertas Amber, Guías de Desarrollo, Directorio, Perfil del Niño, Calendario de Salud.";
+
         try {
             const genAI = new GoogleGenerativeAI(API_KEY);
-            const model = genAI.getGenerativeModel({
-                model: "gemini-1.5-flash",
-            });
+            const modelNames = ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
+            let result = null;
+            let successModel = '';
 
-            const systemInstruction = "Eres un asistente virtual experto en crianza y desarrollo infantil para la aplicación 'Guía Parental'. Tu tono es amable, empático y profesional. Proporciona consejos prácticos basados en evidencia, pero siempre recuerda al usuario consultar a un pediatra para temas médicos. Respuestas concisas y fáciles de leer. Si te preguntan sobre la app, ayuda a navegar por las secciones: Alertas Amber, Guías de Desarrollo, Directorio, Perfil del Niño, Calendario de Salud.";
+            for (const modelName of modelNames) {
+                try {
+                    console.log(`Intentando modelo ChatBot: ${modelName}`);
+                    const model = genAI.getGenerativeModel({ model: modelName });
+                    const chat = model.startChat({
+                        history: [
+                            {
+                                role: 'user',
+                                parts: [{ text: `SYSTEM_INSTRUCTION: ${systemInstruction}` }]
+                            },
+                            {
+                                role: 'model',
+                                parts: [{ text: "Entendido. Actuaré como el asistente virtual experto en crianza." }]
+                            },
+                            ...messages.filter(m => m.id !== 'welcome').map(m => ({
+                                role: m.role,
+                                parts: [{ text: m.content }]
+                            }))
+                        ],
+                    });
 
-            const chat = model.startChat({
-                history: [
-                    {
-                        role: 'user',
-                        parts: [{ text: `SYSTEM_INSTRUCTION: ${systemInstruction}` }]
-                    },
-                    {
-                        role: 'model',
-                        parts: [{ text: "Entendido. Actuaré como el asistente virtual experto en crianza." }]
-                    },
-                    ...messages.filter(m => m.id !== 'welcome').map(m => ({
-                        role: m.role,
-                        parts: [{ text: m.content }]
-                    }))
-                ],
-            });
+                    result = await chat.sendMessage(inputText);
+                    successModel = modelName;
+                    break; // Success!
+                } catch (e) {
+                    console.warn(`Falló modelo Chatbot ${modelName}:`, e);
+                }
+            }
 
-            const result = await chat.sendMessage(inputText);
+            if (!result) throw new Error("Todos los modelos de IA fallaron.");
+
             const response = await result.response;
             const text = response.text();
 
@@ -89,7 +102,7 @@ const ChatBot: React.FC = () => {
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'model',
-                content: "Lo siento, tuve un problema al conectarme con la IA. Por favor verifica tu conexión.",
+                content: "Lo siento, tuve un problema al conectarme con la IA. Verifica tu conexión o intenta más tarde.",
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, errorMsg]);
