@@ -10,7 +10,7 @@ interface AddChildProps {
   userId?: string;
 }
 
-const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) => {
+const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, userId }) => {
   const [formData, setFormData] = useState({
     name: memberToEdit?.name || '',
     role: memberToEdit?.role || 'Hijo/a' as FamilyRole,
