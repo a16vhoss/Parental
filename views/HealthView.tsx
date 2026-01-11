@@ -23,6 +23,7 @@ const HealthView: React.FC<HealthViewProps> = ({ childrenList }) => {
     const [filterType, setFilterType] = useState<string>('all');
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     // Form State
     const [newEvent, setNewEvent] = useState<Partial<HealthEvent>>({
@@ -57,27 +58,59 @@ const HealthView: React.FC<HealthViewProps> = ({ childrenList }) => {
             const { data: profile } = await supabase.from('profiles').select('family_id').eq('id', user?.id).single();
             if (!profile?.family_id) throw new Error('No family found');
 
+            if (!profile?.family_id) throw new Error('No family found');
+
             const payload = {
                 ...newEvent,
                 family_id: profile.family_id,
                 created_by: user?.id
             };
 
-            const { data, error } = await supabase.from('health_events').insert([payload]).select();
+            let data, error;
+
+            if (editingId) {
+                // Update existing
+                const result = await supabase
+                    .from('health_events')
+                    .update(payload)
+                    .eq('id', editingId)
+                    .select();
+                data = result.data;
+                error = result.error;
+            } else {
+                // Insert new
+                const result = await supabase
+                    .from('health_events')
+                    .insert([payload])
+                    .select();
+                data = result.data;
+                error = result.error;
+            }
 
             if (error) throw error;
 
             if (data) {
-                setEvents([...events, data[0]]);
-                await logActivity({
-                    actionType: 'HEALTH_LOG',
-                    description: `Agendó evento: ${newEvent.title}`,
-                    entityId: data[0].id,
-                    entityType: 'event'
-                });
+                if (editingId) {
+                    setEvents(events.map(e => e.id === editingId ? data[0] : e));
+                    await logActivity({
+                        actionType: 'HEALTH_LOG',
+                        description: `Actualizó evento: ${newEvent.title}`,
+                        entityId: data[0].id,
+                        entityType: 'event'
+                    });
+                } else {
+                    setEvents([...events, data[0]]);
+                    await logActivity({
+                        actionType: 'HEALTH_LOG',
+                        description: `Agendó evento: ${newEvent.title}`,
+                        entityId: data[0].id,
+                        entityType: 'event'
+                    });
+                }
             }
 
             setShowModal(false);
+            setEditingId(null);
             setNewEvent({ event_type: 'appointment', event_date: new Date().toISOString().split('T')[0] });
 
         } catch (e: any) {
@@ -137,7 +170,15 @@ const HealthView: React.FC<HealthViewProps> = ({ childrenList }) => {
                 ))}
             </div>
 
-            {EventsList("Próximos Eventos", upcomingEvents, children)}
+            {EventsList("Próximos Eventos", upcomingEvents, children, (e) => {
+                setNewEvent(e);
+                setEditingId(e.id);
+                setShowModal(true);
+            }, async (id) => {
+                if (!confirm('¿Eliminar evento?')) return;
+                const { error } = await supabase.from('health_events').delete().eq('id', id);
+                if (!error) setEvents(events.filter(e => e.id !== id));
+            })}
 
             {pastEvents.length > 0 && (
                 <div className="mt-12 opacity-60 hover:opacity-100 transition-opacity">
@@ -149,7 +190,7 @@ const HealthView: React.FC<HealthViewProps> = ({ childrenList }) => {
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
                     <div className="bg-white dark:bg-surface-dark w-full max-w-md rounded-2xl p-6 shadow-2xl animate-in zoom-in-95">
-                        <h3 className="text-xl font-black mb-6 dark:text-white">Nuevo Evento</h3>
+                        <h3 className="text-xl font-black mb-6 dark:text-white">{editingId ? 'Editar Evento' : 'Nuevo Evento'}</h3>
 
                         <div className="space-y-4">
                             <div>
@@ -234,7 +275,7 @@ const HealthView: React.FC<HealthViewProps> = ({ childrenList }) => {
     );
 };
 
-const EventsList = (title: string, list: HealthEvent[], children: FamilyMember[]) => (
+const EventsList = (title: string, list: HealthEvent[], children: FamilyMember[], onEdit?: (e: HealthEvent) => void, onDelete?: (id: string) => void) => (
     <section className="mb-8">
         <h3 className="font-bold text-lg text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-100 dark:border-gray-800 pb-2">{title}</h3>
 
@@ -258,16 +299,36 @@ const EventsList = (title: string, list: HealthEvent[], children: FamilyMember[]
                 };
 
                 return (
-                    <div key={event.id} className={`bg-white dark:bg-surface-dark p-5 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-start gap-4 ${isPast ? 'grayscale opacity-70' : 'shadow-sm'}`}>
+                    <div key={event.id} className={`group bg-white dark:bg-surface-dark p-5 rounded-2xl border border-gray-100 dark:border-gray-800 flex items-start gap-4 ${isPast ? 'grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all' : 'shadow-sm'}`}>
                         <div className={`size-12 rounded-xl flex items-center justify-center shrink-0 ${typeColors[event.event_type] || typeColors.other}`}>
                             <span className="material-symbols-outlined">{icons[event.event_type] || 'event'}</span>
                         </div>
                         <div className="flex-1">
                             <div className="flex justify-between items-start">
                                 <h4 className="font-bold text-lg text-[#121716] dark:text-white">{event.title}</h4>
-                                <span className={`text-xs font-bold px-2 py-1 rounded-lg ${isPast ? 'bg-gray-100 text-gray-500' : 'bg-primary/10 text-primary'}`}>
-                                    {new Date(event.event_date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'long' })}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-xs font-bold px-2 py-1 rounded-lg ${isPast ? 'bg-gray-100 text-gray-500' : 'bg-primary/10 text-primary'}`}>
+                                        {new Date(event.event_date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'long' })}
+                                    </span>
+                                    {onEdit && (
+                                        <button
+                                            onClick={() => onEdit(event)}
+                                            className="p-1 text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                                            title="Editar"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+                                    )}
+                                    {onDelete && (
+                                        <button
+                                            onClick={() => onDelete(event.id)}
+                                            className="p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                            title="Eliminar"
+                                        >
+                                            <span className="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             {child && (
                                 <div className="flex items-center gap-1 mt-1 text-sm text-gray-500">
