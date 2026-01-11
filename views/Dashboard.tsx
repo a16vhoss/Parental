@@ -1,9 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // Changed Baby to FamilyMember to fix import error
 import { FamilyMember } from '../types';
 import { getMemberIcon } from '../utils/memberUtils';
+import { supabase } from '../lib/supabase';
 
 
 interface DashboardProps {
@@ -78,6 +79,51 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      // 1. Fetch Active Alerts
+      const { data: alerts } = await supabase
+        .from('amber_alerts')
+        .select('*')
+        .eq('status', 'active')
+        .limit(5);
+
+      const alertNotifs = alerts?.map(a => ({
+        id: a.id,
+        type: 'alert',
+        title: 'ALERTA AMBER ACTIVA',
+        desc: `Alerta activa en tu zona. Ayuda a encontrar a ${a.child_id ? 'un niño' : 'alguien'}.`,
+        time: 'AHORA',
+        icon: 'emergency_home',
+        color: 'text-red-500 bg-red-50',
+        link: `/alerta/detalles/${a.id}`
+      })) || [];
+
+      // 2. Mock Tips (Future: Real database notifications)
+      const mockNotifs = [
+        { id: 'vac-1', type: 'info', title: 'Recordatorio de Vacuna', desc: 'Revisar cartilla de vacunación.', time: 'Hoy', icon: 'vaccines', color: 'text-blue-500 bg-blue-50' },
+        { id: 'tip-1', type: 'tip', title: 'Consejo del Día', desc: 'La hidratación es clave en días calurosos.', time: 'Hace 2h', icon: 'lightbulb', color: 'text-amber-500 bg-amber-50' }
+      ];
+
+      setNotifications([...alertNotifs, ...mockNotifs]);
+      setUnreadCount(alertNotifs.length + 1); // Mock unread count
+    };
+
+    fetchNotifications();
+
+    // Subscribe to new alerts
+    const channel = supabase
+      .channel('dashboard_notifs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'amber_alerts' }, payload => {
+        fetchNotifications();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   // Helper para convertir la cadena de edad a meses aproximados para la lógica de filtrado
   const parseAgeToMonths = (ageStr: string): number => {
@@ -213,33 +259,44 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
                 className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all relative ${showNotifications ? 'bg-primary/10 text-primary' : 'bg-white dark:bg-surface-dark text-[#121716] dark:text-white'}`}
               >
                 <span className={`material-symbols-outlined ${showNotifications ? 'icon-filled' : ''}`}>notifications</span>
-                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 border-2 border-white dark:border-surface-dark rounded-full animate-pulse"></span>
+                )}
               </button>
 
-              {/* Notifications Dropdown */}
               {showNotifications && (
                 <div className="absolute right-0 top-12 w-80 bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                  <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                  <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
                     <h3 className="font-bold text-[#121716] dark:text-white">Notificaciones</h3>
-                    <span className="text-xs text-primary font-bold cursor-pointer">Marcar leídas</span>
+                    <button onClick={() => setUnreadCount(0)} className="text-xs text-primary font-bold hover:underline">Marcar leídas</button>
                   </div>
-                  <div className="max-h-[300px] overflow-y-auto">
-                    {[
-                      { icon: 'vaccines', color: 'text-blue-500', title: 'Vacuna Próxima', desc: 'Refuerzo de 6 meses para Santi mañana.', time: 'Hace 2h' },
-                      { icon: 'auto_awesome', color: 'text-purple-500', title: 'Nuevo Consejo IA', desc: 'Blog: "Cómo manejar los terribles 2".', time: 'Hace 5h' },
-                      { icon: 'event', color: 'text-orange-500', title: 'Cita Pediatra', desc: 'Recordatorio: Dr. Martínez el Jueves.', time: 'Ayer' },
-                    ].map((topic, i) => (
-                      <div key={i} className="p-4 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer border-b border-gray-50 dark:border-gray-800 last:border-0 flex gap-3">
-                        <div className={`w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center ${topic.color}`}>
-                          <span className="material-symbols-outlined text-lg">{topic.icon}</span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-bold text-[#121716] dark:text-white leading-tight">{topic.title}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{topic.desc}</p>
-                          <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">{topic.time}</p>
-                        </div>
+                  <div className="max-h-[350px] overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-gray-400">
+                        <span className="material-symbols-outlined text-3xl mb-2">notifications_off</span>
+                        <p className="text-xs">Sin notificaciones nuevas</p>
                       </div>
-                    ))}
+                    ) : (
+                      notifications.map((notif, i) => (
+                        <div
+                          key={i}
+                          onClick={() => {
+                            if (notif.link) navigate(notif.link);
+                            setShowNotifications(false);
+                          }}
+                          className={`p-4 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer border-b border-gray-50 dark:border-gray-800 last:border-0 flex gap-3 ${notif.type === 'alert' ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}
+                        >
+                          <div className={`w-10 h-10 rounded-full flex shrink-0 items-center justify-center ${notif.color} ${notif.type === 'alert' ? 'animate-pulse' : ''}`}>
+                            <span className="material-symbols-outlined text-lg">{notif.icon}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className={`text-sm font-bold leading-tight ${notif.type === 'alert' ? 'text-red-600 dark:text-red-400' : 'text-[#121716] dark:text-white'}`}>{notif.title}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{notif.desc}</p>
+                            <p className="text-[10px] text-gray-400 mt-1.5 uppercase tracking-wider font-medium">{notif.time}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                   <div className="p-3 bg-gray-50 dark:bg-white/5 text-center">
                     <button className="text-xs font-bold text-gray-500 hover:text-primary transition-colors">Ver todas</button>

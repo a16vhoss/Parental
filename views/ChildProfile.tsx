@@ -115,7 +115,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
           .eq('id', activeAlertId);
 
         if (error) {
-          alert('Error al desactivar alerta');
+          alert(`Error al desactivar alerta: ${error.message} (${error.code})`);
         } else {
           setActiveAlertId(null);
           alert('¡Excelente noticia! La alerta ha sido desactivada.');
@@ -314,8 +314,8 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
                   onClick={handleToggleAlert}
                   disabled={loadingStatus}
                   className={`mb-6 px-6 py-2 rounded-full font-bold text-sm shadow-lg transform transition-all active:scale-95 flex items-center gap-2 ${activeAlertId
-                      ? 'bg-green-500 text-white hover:bg-green-600 animate-pulse'
-                      : 'bg-red-50 text-red-500 hover:bg-red-100 border border-red-100'
+                    ? 'bg-green-500 text-white hover:bg-green-600 animate-pulse'
+                    : 'bg-red-50 text-red-500 hover:bg-red-100 border border-red-100'
                     }`}
                 >
                   {activeAlertId ? (
