@@ -123,6 +123,9 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
 
   // Compute personalized guides based on children's ages
   const personalizedGuides = useMemo(() => {
+    console.log('DEBUG: childrenList', childrenList);
+    console.log('DEBUG: STAGES', STAGES);
+
     const parseToMonths = (ageStr: string, dob?: string): number => {
       if (dob) {
         const birthDate = new Date(dob);
@@ -141,7 +144,11 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
     // childrenList is already filtered to Hijo/a role in App.tsx
     childrenList.forEach(child => {
       const ageMonths = parseToMonths(child.age, child.vitals?.dob);
+      console.log('DEBUG: child', child.name, 'age:', child.age, 'ageMonths:', ageMonths);
+
       const stage = STAGES.find(s => ageMonths >= s.minMonths && ageMonths < s.maxMonths);
+      console.log('DEBUG: found stage', stage?.name);
+
       if (stage) {
         result.push({
           stage,
@@ -152,6 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
       }
     });
 
+    console.log('DEBUG: result', result);
     return result;
   }, [childrenList]);
 
