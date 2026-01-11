@@ -213,18 +213,19 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
               className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Parentesco / Rol</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={!memberToEdit} // Disable if adding new (forced to Hijo/a)
-              className={`w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all font-bold text-primary ${!memberToEdit ? 'opacity-70 cursor-not-allowed' : ''}`}
-            >
-              {availableRoles.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-          </div>
+          {memberToEdit && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Parentesco / Rol</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full bg-gray-50 dark:bg-background-dark border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary transition-all font-bold text-primary"
+              >
+                {availableRoles.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Sexo</label>
