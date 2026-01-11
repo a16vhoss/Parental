@@ -251,6 +251,18 @@ const AppContent: React.FC = () => {
         childrenList={family}
         onUpdateChild={handleUpdateMember}
         onBack={() => navigate('/familia')}
+        onEditMember={handleEditMember}
+        onAddMember={(role) => {
+          // We might want to pre-select the role. 
+          // For now, just opening the modal is good, but pre-filling role would be better.
+          // However, AddChild doesn't strictly support "pre-fill role only" via memberToEdit easily without a fake object.
+          // Let's pass a special partial member or handle role selection state if possible.
+          // Simpler: Just open AddChild, user picks role. 
+          // Better: Add `initialRole` to AddChild?
+          // Let's stick to standard add for now to keep it simple, or implement a quick hack using setEditingMember for a "new" member with just role?
+          // Actually, let's just navigate to /familia/nuevo for now or use the modal if available.
+          setShowAddChild(true);
+        }}
       />
     );
   };

@@ -3,7 +3,8 @@ import { supabase } from '../lib/supabase';
 import { useEffect } from 'react';
 
 // Added FamilyMember to fix import error
-import { FamilyMember } from '../types';
+import { FamilyMember, FamilyRole } from '../types';
+import FamilyTree from '../components/FamilyTree';
 
 interface ChildProfileProps {
   childId: string | null;
@@ -13,6 +14,7 @@ interface ChildProfileProps {
   onUpdateChild: (child: FamilyMember) => void;
   onBack: () => void;
   onEditMember?: (member: FamilyMember) => void;
+  onAddMember?: (role: FamilyRole) => void;
 }
 
 interface GrowthPoint {
@@ -25,7 +27,7 @@ interface GrowthPoint {
   heightPercent: number;
 }
 
-const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUpdateChild, onBack, onEditMember }) => {
+const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUpdateChild, onBack, onEditMember, onAddMember }) => {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const [growthLogs, setGrowthLogs] = useState<GrowthPoint[]>([]);
