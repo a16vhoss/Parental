@@ -129,16 +129,17 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, childrenList, onViewPro
         const today = new Date();
         return Math.max(0, (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth()));
       }
-      const age = ageStr.toLowerCase();
-      if (age.includes('mes')) return parseInt(age.match(/\d+/)?.[0] || '0');
+      const age = (ageStr || '').toLowerCase().trim();
+      if (age.includes('mes')) return parseInt(age.match(/\d+/)?.[0] || '1');
       if (age.includes('año')) return parseInt(age.match(/\d+/)?.[0] || '1') * 12;
-      if (age === 'nuevo' || age === 'recién nacido') return 0;
+      if (age === 'nuevo' || age === 'recién nacido' || age === 'recien nacido' || age === '') return 0;
       return 0;
     };
 
     const result: { stage: typeof STAGES[0]; childName: string; childId: string; modules: number }[] = [];
 
-    childrenList.filter(c => c.role === 'Hijo/a').forEach(child => {
+    // childrenList is already filtered to Hijo/a role in App.tsx
+    childrenList.forEach(child => {
       const ageMonths = parseToMonths(child.age, child.vitals?.dob);
       const stage = STAGES.find(s => ageMonths >= s.minMonths && ageMonths < s.maxMonths);
       if (stage) {
