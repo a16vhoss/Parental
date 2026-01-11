@@ -77,7 +77,9 @@ const GrowthChart: React.FC<GrowthChartProps> = ({ data, type, color }) => {
                         dataKey={type}
                         stroke={color}
                         fill={`url(#gradient-${type})`}
-                        strokeWidth={3}
+                        strokeWidth={4}
+                        dot={{ r: 4, strokeWidth: 2, fill: '#fff', stroke: color }}
+                        activeDot={{ r: 6, strokeWidth: 0, fill: color }}
                         animationDuration={1500}
                     />
                     <defs>

@@ -502,6 +502,61 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
                 color="#3b82f6"
               />
             </div>
+
+            {/* HISTORIAL DETALLADO (Added for editing) */}
+            <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-lg text-[#121716] dark:text-white">Historial de Registros</h3>
+                <span className="text-xs font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                  {growthLogs.length} registros
+                </span>
+              </div>
+
+              <div className="overflow-hidden">
+                {growthLogs.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <p>No hay registros históricos aún.</p>
+                  </div>
+                ) : (
+                  <div className="border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 font-medium">
+                        <tr>
+                          <th className="px-4 py-3">Fecha</th>
+                          <th className="px-4 py-3">Peso</th>
+                          <th className="px-4 py-3">Talla</th>
+                          <th className="px-4 py-3 text-right">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                        {growthLogs.map((log) => (
+                          <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+                            <td className="px-4 py-3 text-[#121716] dark:text-white font-medium">
+                              {new Date(log.date || '').toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </td>
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                              {log.weight ? `${log.weight} kg` : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                              {log.height ? `${log.height} cm` : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <button
+                                onClick={() => handleOpenModal(log)}
+                                className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                                title="Editar"
+                              >
+                                <span className="material-symbols-outlined text-lg">edit</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">

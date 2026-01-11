@@ -27,6 +27,8 @@ import { supabase } from './lib/supabase';
 import AlertNotification from './components/AlertNotification';
 import { calculateDistance } from './lib/geo';
 
+import ChatBot from './components/ChatBot';
+
 // Wrapper component that provides navigation context
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
@@ -533,6 +535,9 @@ const AppContent: React.FC = () => {
           />
         )}
       </div>
+      {/* GLOBAL CHATBOT */}
+      {userId && <ChatBot />}
+
       {showAddChild && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
