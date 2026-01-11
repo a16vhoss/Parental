@@ -8,6 +8,8 @@ import { FamilyMember, FamilyRole } from '../types';
 import FamilyTree from '../components/FamilyTree';
 import { calculateAge } from '../utils/dateUtils';
 import { getMemberIcon } from '../utils/memberUtils';
+import GrowthChart from '../components/GrowthChart';
+import { useLogger } from '../hooks/useLogger';
 
 interface ChildProfileProps {
   childId: string | null;
@@ -43,6 +45,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
   const [newHeight, setNewHeight] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
   const navigate = useNavigate();
+  const { logActivity } = useLogger();
 
   const child = childrenList.find(c => c.id === childId) || childrenList[0];
 
@@ -56,17 +59,17 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
 
     const fetchLogs = async () => {
       const { data } = await supabase
-        .from('growth_logs')
+        .from('child_vitals_history')
         .select('*')
-        .eq('member_id', childId)
-        .order('date', { ascending: true });
+        .eq('child_id', childId)
+        .order('recorded_at', { ascending: true });
 
       if (data && data.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedLogs = data.map((log: any) => ({
           id: log.id,
-          date: log.date,
-          month: new Date(log.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+          date: log.recorded_at,
+          month: new Date(log.recorded_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
           weight: Number(log.weight),
           height: Number(log.height),
           percentile: 50,
@@ -104,23 +107,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
     }
   };
 
-  // Fetch Vitals History
-  useEffect(() => {
-    const fetchHistory = async () => {
-      if (!childId) return;
-      const { data } = await supabase
-        .from('child_vitals_history')
-        .select('*')
-        .eq('child_id', childId)
-        .order('recorded_at', { ascending: false }); // Newest first
 
-      if (data) setVitalsHistory(data);
-    };
-
-    if (activeTab === 'growth') {
-      fetchHistory();
-    }
-  }, [childId, activeTab]);
 
   const handleSaveMeasurement = async () => {
     if (!childId || (!newWeight && !newHeight)) return;
@@ -129,41 +116,48 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase.from('child_vitals_history').insert({
+      const dateToSave = newDate || new Date().toISOString();
+
+      const { data, error } = await supabase.from('child_vitals_history').insert({
         child_id: childId,
         weight: newWeight ? parseFloat(newWeight) : null,
         height: newHeight ? parseFloat(newHeight) : null,
+        recorded_at: dateToSave,
         recorded_by: user.id
-      });
+      }).select();
 
       if (error) throw error;
 
-      // Update local state
-      const newRecord = {
-        id: Date.now(), // temp id
-        child_id: childId,
-        weight: newWeight ? parseFloat(newWeight) : null,
-        height: newHeight ? parseFloat(newHeight) : null,
-        recorded_at: new Date().toISOString()
-      };
-      setVitalsHistory([newRecord, ...vitalsHistory]);
+      // Update local state (growthLogs)
+      if (data) {
+        const newLog = data[0];
+        const mappedLog: GrowthPoint = {
+          id: newLog.id,
+          date: newLog.recorded_at,
+          month: new Date(newLog.recorded_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+          weight: Number(newLog.weight),
+          height: Number(newLog.height),
+          percentile: 50, // Placeholder
+          heightPercent: Math.min((Number(newLog.height) / 120) * 100, 100)
+        };
 
-      // Log activity
-      await logActivity({
-        actionType: 'HEALTH_LOG',
-        description: `Registró medición: ${newWeight ? newWeight + 'kg' : ''} ${newHeight ? newHeight + 'cm' : ''}`,
-        entityId: childId,
-        entityType: 'child'
-      });
+        setGrowthLogs(prev => [...prev, mappedLog].sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime()));
 
-      // Update current vitals in profile (optional but good)
-      // This would require a separate update call to 'vitals' column in family_members
+        // Log activity
+        await logActivity({
+          actionType: 'HEALTH_LOG',
+          description: `Registró medición: ${newWeight ? newWeight + 'kg' : ''} ${newHeight ? newHeight + 'cm' : ''}`,
+          entityId: childId,
+          entityType: 'child'
+        });
+      }
 
-      setShowMeasureModal(false);
+      setShowLogModal(false);
       setNewWeight('');
       setNewHeight('');
     } catch (err) {
       console.error("Error saving measurement:", err);
+      alert("Error al guardar: " + (err as Error).message);
     }
   };
 
@@ -234,7 +228,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
 
     if (!confirm('¿Estás seguro de eliminar este registro?')) return;
 
-    const { data, error } = await supabase.from('growth_logs').delete().eq('id', selectedLog.id).select();
+    const { data, error } = await supabase.from('child_vitals_history').delete().eq('id', selectedLog.id).select();
 
     if (error) {
       console.error('Error deleting log:', error);
@@ -253,15 +247,16 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
   };
 
   const handleSaveMetrics = async () => {
-    if (!newWeight || !newHeight || !newDate) return;
+    if (!newWeight && !newHeight) return;
+    const dateToSave = newDate || new Date().toISOString();
 
     if (childId) {
       if (selectedLog?.id) {
         // UPDATE
-        await supabase.from('growth_logs').update({
-          weight: newWeight,
-          height: newHeight,
-          date: newDate
+        await supabase.from('child_vitals_history').update({
+          weight: newWeight ? parseFloat(newWeight) : null,
+          height: newHeight ? parseFloat(newHeight) : null,
+          recorded_at: dateToSave
         }).eq('id', selectedLog.id);
 
         // Update local
@@ -269,31 +264,42 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
           ...l,
           weight: Number(newWeight),
           height: Number(newHeight),
-          date: newDate,
-          month: new Date(newDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+          date: dateToSave,
+          month: new Date(dateToSave).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
           heightPercent: Math.min((Number(newHeight) / 120) * 100, 100)
         } : l));
 
       } else {
         // INSERT
-        const { data } = await supabase.from('growth_logs').insert([{
-          member_id: childId,
-          weight: newWeight,
-          height: newHeight,
-          date: newDate
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const { data } = await supabase.from('child_vitals_history').insert([{
+          child_id: childId,
+          weight: newWeight ? parseFloat(newWeight) : null,
+          height: newHeight ? parseFloat(newHeight) : null,
+          recorded_at: dateToSave,
+          recorded_by: user?.id
         }]).select();
 
         if (data) {
           const newLog = data[0];
           setGrowthLogs(prev => [...prev, {
             id: newLog.id,
-            date: newLog.date,
-            month: new Date(newLog.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+            date: newLog.recorded_at,
+            month: new Date(newLog.recorded_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
             weight: Number(newLog.weight),
             height: Number(newLog.height),
             percentile: 50,
             heightPercent: Math.min((Number(newLog.height) / 120) * 100, 100)
           }].sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime()));
+
+          // Log activity
+          await logActivity({
+            actionType: 'HEALTH_LOG',
+            description: `Registró medición: ${newWeight ? newWeight + 'kg' : ''} ${newHeight ? newHeight + 'cm' : ''}`,
+            entityId: childId,
+            entityType: 'child'
+          });
         }
       }
     }
@@ -304,8 +310,8 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
       ...child,
       vitals: {
         ...child.vitals,
-        weight: `${newWeight}kg`,
-        height: `${newHeight}cm`,
+        weight: newWeight ? `${newWeight}kg` : child.vitals.weight,
+        height: newHeight ? `${newHeight}cm` : child.vitals.height,
       },
       status: '📈 Métricas actualizadas'
     };
@@ -472,70 +478,23 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, curr
         </div>
 
         <div className="lg:col-span-8 flex flex-col gap-6">
-          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 relative">
-            <h3 className="text-lg font-bold mb-6 text-[#121716] dark:text-white">Seguimiento de Crecimiento</h3>
-
-            <div className="h-64 w-full relative flex items-end justify-between px-2 gap-4 border-b border-gray-50 dark:border-gray-800/50 pb-2">
-              {history.map((point, i) => (
-                <div
-                  key={i}
-                  className="flex-1 group relative flex flex-col items-center h-full justify-end"
-                  onMouseEnter={() => setHoveredPoint(i)}
-                  onMouseLeave={() => setHoveredPoint(null)}
-                >
-                  {/* Tooltip con animación de subida sutil */}
-                  <div className={`absolute bottom-full mb-6 w-40 bg-white dark:bg-surface-dark border border-primary/20 p-3 rounded-xl shadow-2xl z-50 transition-all duration-300 transform origin-bottom ${hoveredPoint === i ? 'opacity-100 scale-100 -translate-y-2' : 'opacity-0 scale-95 translate-y-2 pointer-events-none'}`}>
-                    <div className="flex flex-col gap-1 text-xs">
-                      <p className="font-black text-primary uppercase mb-1 border-b border-gray-50 dark:border-gray-800 pb-1">{point.month}</p>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Peso:</span>
-                        <span className="font-bold text-[#121716] dark:text-white">{point.weight} kg</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Talla:</span>
-                        <span className="font-bold text-[#121716] dark:text-white">{point.height} cm</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Percentil:</span>
-                        <span className="font-bold text-primary">{point.percentile}%</span>
-                      </div>
-                    </div>
-                    <div className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-white dark:bg-surface-dark border-r border-b border-primary/20 rotate-45"></div>
-                  </div>
-
-                  {/* Barra interactiva con efecto de "punto" marcador */}
-                  <div
-                    className="relative w-full h-full flex flex-col justify-end items-center group/bar"
-                    onClick={() => handleOpenModal(point)} // Make bar clickable
-                  >
-                    <div
-                      style={{ height: `${point.heightPercent}%` }}
-                      className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 ease-out cursor-pointer relative ${hoveredPoint === i
-                        ? 'bg-primary scale-x-110 -translate-y-1 shadow-[0_-10px_20px_-5px_rgba(42,157,144,0.4)]'
-                        : (i === history.length - 1 ? 'bg-primary opacity-90' : 'bg-primary/20 dark:bg-primary/10 hover:bg-primary/40')
-                        }`}
-                    >
-                      {/* El "Punto" del gráfico que aparece al hacer hover */}
-                      <div className={`absolute -top-1 left-1/2 -translate-x-1/2 size-3 rounded-full border-2 border-white dark:border-surface-dark bg-primary shadow-md transition-all duration-300 ${hoveredPoint === i ? 'scale-125 opacity-100 -translate-y-1' : 'scale-50 opacity-0 group-hover/bar:opacity-100 group-hover/bar:scale-100'}`}></div>
-                    </div>
-                  </div>
-
-                  <span className={`mt-4 text-[10px] font-bold transition-all duration-300 ${hoveredPoint === i ? 'text-primary scale-110' : 'text-gray-400'}`}>
-                    {point.month}
-                  </span>
-                </div>
-              ))}
+          <div className="flex flex-col gap-8">
+            <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+              <h3 className="font-bold text-lg text-[#121716] dark:text-white mb-4">Curva de Peso</h3>
+              <GrowthChart
+                data={growthLogs.filter(v => v.weight).map(v => ({ date: v.date!, weight: v.weight }))}
+                type="weight"
+                color="#10b981"
+              />
             </div>
 
-            <div className="mt-6 flex gap-6">
-              <div className="flex items-center gap-2">
-                <div className="size-3 rounded-full bg-primary"></div>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Peso/Talla</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="size-3 rounded-full bg-primary/20"></div>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Histórico</span>
-              </div>
+            <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+              <h3 className="font-bold text-lg text-[#121716] dark:text-white mb-4">Curva de Talla</h3>
+              <GrowthChart
+                data={growthLogs.filter(v => v.height).map(v => ({ date: v.date!, height: v.height }))}
+                type="height"
+                color="#3b82f6"
+              />
             </div>
           </div>
 

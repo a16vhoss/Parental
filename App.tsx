@@ -13,7 +13,9 @@ import EmergencyAlert from './views/EmergencyAlert';
 import AddChild from './views/AddChild';
 import FamilyView from './views/FamilyView';
 import GuidesView from './views/GuidesView';
-import GuideDetail from './views/GuideDetail';
+import HealthView from './views/HealthView';
+
+// ... existing imports
 import ModuleView from './views/ModuleView';
 import Login from './views/Login';
 import AlertDetails from './views/AlertDetails';
