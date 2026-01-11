@@ -104,21 +104,28 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
 
       // 1.5 Upload Photo if exists
       if (photoFile) {
-        const fileExt = photoFile.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `alerts/${selectedChildId}/${fileName}`;
+        try {
+          const fileExt = photoFile.name.split('.').pop();
+          // Use user.id prefix to ensure we match typical RLS policies for avatars bucket
+          // pattern: userId/alert_timestamp_random.ext
+          const fileName = `alert_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const filePath = `${user.id}/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('alerts') // Ensure this bucket exists or use 'avatars' as fallback if you prefer
-          .upload(filePath, photoFile);
+          console.log('Subiendo foto a avatars bucket:', filePath);
 
-        if (!uploadError) {
-          const { data: publicUrlData } = supabase.storage.from('alerts').getPublicUrl(filePath);
-          uploadedPhotoUrl = publicUrlData.publicUrl;
-        } else {
-          console.warn("Error uploading alert photo:", uploadError);
-          // Proceed without photo if upload fails, or alert user? 
-          // Better to proceed for emergency, maybe log it.
+          const { error: uploadError } = await supabase.storage
+            .from('avatars') // Use existing public bucket
+            .upload(filePath, photoFile, { upsert: true });
+
+          if (uploadError) {
+            console.error("Error uploading alert photo:", uploadError);
+          } else {
+            const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            uploadedPhotoUrl = publicUrlData.publicUrl;
+            console.log('Foto subida exitosamente:', uploadedPhotoUrl);
+          }
+        } catch (e) {
+          console.error("Excepción al subir foto:", e);
         }
       }
 
