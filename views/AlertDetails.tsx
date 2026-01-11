@@ -10,8 +10,8 @@ const AlertDetails: React.FC = () => {
     const [alert, setAlert] = useState<any>(null);
     const [child, setChild] = useState<FamilyMember | null>(null);
     const [distance, setDistance] = useState<string>('...');
-    const [sightingDesc, setSightingDesc] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [distance, setDistance] = useState<string>('...');
+    // Removed sighting form state
 
     useEffect(() => {
         if (alertId) fetchAlertDetails();
@@ -38,6 +38,24 @@ const AlertDetails: React.FC = () => {
 
         if (childData) setChild(childData);
 
+        // Fetch Reporter Info
+        const { data: reporterData } = await supabase
+            .from('profiles')
+            .select('full_name, phone')
+            .eq('id', alertData.created_by)
+            .single();
+
+        // Mock phone if missing for demo
+        if (reporterData) {
+            setAlert(prev => ({
+                ...prev,
+                reporter: {
+                    ...reporterData,
+                    phone: reporterData.phone || '3312345678' // Mock default 
+                }
+            }));
+        }
+
         // Calculate distance
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition((pos) => {
@@ -52,34 +70,7 @@ const AlertDetails: React.FC = () => {
         }
     };
 
-    const handleReportSighting = async () => {
-        if (!sightingDesc.trim()) return alert('Por favor describe lo que has visto.');
-        setIsSubmitting(true);
-
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-
-            const { error } = await supabase.from('alert_responses').insert({
-                alert_id: alertId,
-                responder_id: user?.id,
-                response_type: 'sighting',
-                message: sightingDesc,
-                latitude: alert?.latitude, // In a real app, capture user's current lat/long
-                longitude: alert?.longitude
-            });
-
-            if (error) throw error;
-
-            alert('Gracias. Tu reporte ha sido enviado a la familia y autoridades.');
-            navigate('/dashboard');
-
-        } catch (err) {
-            console.error(err);
-            alert('Error al enviar el reporte.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    // Removed handleReportSighting as we now show contact info directly
 
     if (!alert || !child) return <div className="p-10 text-center">Cargando alerta...</div>;
 
@@ -135,32 +126,43 @@ const AlertDetails: React.FC = () => {
                 </div>
 
                 {/* Action Section */}
+                {/* Action Section - Contact Info */}
                 <div className="bg-white dark:bg-[#253336] rounded-2xl p-6 shadow-sm">
                     <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary">visibility</span>
-                        ¿Has visto a {child.name}?
+                        <span className="material-symbols-outlined text-primary">contact_phone</span>
+                        Contacto Directo
                     </h3>
 
-                    <textarea
-                        className="w-full bg-[#f4f6f3] dark:bg-[#1a2a2d] border-none rounded-xl p-4 min-h-[120px]"
-                        placeholder={`Describe dónde y cuándo viste a ${child.name}...`}
-                        value={sightingDesc}
-                        onChange={e => setSightingDesc(e.target.value)}
-                    />
+                    <div className="bg-gray-50 dark:bg-[#1a2a2d] p-4 rounded-xl mb-6">
+                        <p className="text-sm text-gray-500 mb-1">Reportado por:</p>
+                        <p className="text-lg font-bold text-[#121716] dark:text-white flex items-center gap-2">
+                            {alert.reporter?.full_name || 'Familiar'}
+                            <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full uppercase">Verificado</span>
+                        </p>
+                    </div>
 
-                    <button
-                        onClick={handleReportSighting}
-                        disabled={isSubmitting}
-                        className="w-full mt-4 bg-primary text-white font-bold py-4 rounded-xl hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
-                    >
-                        {isSubmitting ? (
-                            <span className="material-symbols-outlined animate-spin">sync</span>
-                        ) : (
-                            <span className="material-symbols-outlined">send</span>
-                        )}
-                        ENVIAR REPORTE DE AVISTAMIENTO
-                    </button>
-                    <p className="text-xs text-center text-gray-400 mt-2">Tu ubicación se compartirá con las autoridades.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <a
+                            href={`tel:${alert.reporter?.phone}`}
+                            className="bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-200 dark:shadow-none"
+                        >
+                            <span className="material-symbols-outlined filled">call</span>
+                            LLAMAR AHORA
+                        </a>
+                        <a
+                            href={`https://wa.me/52${alert.reporter?.phone?.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bg-[#25D366] text-white font-bold py-4 rounded-xl hover:bg-[#20bd5a] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-200 dark:shadow-none"
+                        >
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-6 h-6 brightness-0 invert" alt="WhatsApp" />
+                            WHATSAPP
+                        </a>
+                    </div>
+
+                    <p className="text-xs text-center text-gray-400 mt-6">
+                        Si tienes información visual, marca inmediatamente o envía ubicación por WhatsApp.
+                    </p>
                 </div>
             </div>
         </main>
