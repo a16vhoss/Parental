@@ -343,6 +343,7 @@ const AppContent: React.FC = () => {
                   onProfileUpdate={refreshSession}
                   onNavigateToSettings={() => navigate('/configuracion')}
                   onEditMember={handleEditMember}
+                  onViewMember={handleViewMemberProfile}
                 />
               </ProtectedRoute>
             } />

@@ -19,7 +19,8 @@ const NodeCard = ({
     member,
     rolePlaceholder,
     onAddMember,
-    onEditMember
+    onEditMember,
+    currentUserId
 }: {
     member?: FamilyMember;
     rolePlaceholder: string;

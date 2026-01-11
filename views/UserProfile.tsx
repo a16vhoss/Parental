@@ -20,6 +20,7 @@ interface UserProfileProps {
   onProfileUpdate?: () => void;
   onNavigateToSettings: () => void;
   onEditMember?: (member: FamilyMember) => void;
+  onViewMember?: (id: string) => void;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -34,7 +35,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   childrenList = [],
   onProfileUpdate,
   onNavigateToSettings,
-  onEditMember
+  onEditMember,
+  onViewMember
 }) => {
   // Format joined date (e.g., "Octubre 2023")
   const formattedJoinDate = joinedAt ? new Date(joinedAt).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'recientemente';
@@ -246,7 +248,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <div className="space-y-3">
               {childrenList.length > 0 ? (
                 childrenList.map((member) => (
-                  <div key={member.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors">
+                  <div
+                    key={member.id}
+                    onClick={() => onViewMember && onViewMember(member.id)}
+                    className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors cursor-pointer group"
+                  >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm ${member.role === 'Hijo/a' ? 'bg-indigo-400' : 'bg-emerald-400'
                       }`}>
                       {member.name.substring(0, 2).toUpperCase()}
@@ -257,7 +263,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
                     </div>
                     {onEditMember && (member.created_by === userId || !member.created_by) && (
                       <button
-                        onClick={() => onEditMember(member)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditMember(member);
+                        }}
                         className="p-1.5 text-gray-400 hover:text-primary hover:bg-white dark:hover:bg-white/10 rounded-full transition-all"
                       >
                         <span className="material-symbols-outlined text-lg">edit</span>
