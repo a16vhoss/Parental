@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { FamilyMember, FamilyRole } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface AddChildProps {
   memberToEdit?: FamilyMember;
@@ -22,9 +23,69 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) =
     birthHeight: memberToEdit?.vitals?.birthHeight || '',
     birthCity: memberToEdit?.vitals?.birthCity || '',
     birthCountry: memberToEdit?.vitals?.birthCountry || '',
-    avatar: memberToEdit?.avatar || 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=200&h=200&auto=format&fit=crop',
+    avatar: memberToEdit?.avatar || '',
     email: memberToEdit?.email || ''
   });
+
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      const fileName = `member_${Date.now()}.${fileExt}`;
+
+      // Validate file type
+      if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt || '')) {
+        alert('Formato no soportado. Usa JPG, PNG o GIF.');
+        return;
+      }
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('La imagen es muy grande. Máximo 2MB.');
+        return;
+      }
+
+      setIsUploading(true);
+
+      // 1. Upload to Supabase Storage
+      // Using a generic 'members' folder or similar. Since we don't have auth user ID easily accessible here without prop drilling,
+      // we'll put it in a public 'members' folder or similar.
+      // Ideally we should use the user's ID, but for now we'll rely on unique filenames.
+      const filePath = `members/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // 2. Get Public URL
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      if (data) {
+        setFormData(prev => ({ ...prev, avatar: data.publicUrl }));
+      }
+
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      alert('Error al subir la imagen: ' + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -85,18 +146,37 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel }) =
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white dark:bg-surface-dark rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-800 space-y-8">
+
         <div className="flex flex-col items-center mb-4">
-          <div className="relative group">
-            <img
-              src={formData.avatar}
-              alt="Avatar Preview"
-              className="w-24 h-24 rounded-full border-4 border-gray-50 dark:border-gray-700 object-cover shadow-md group-hover:brightness-75 transition-all"
-            />
+          <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+            {formData.avatar ? (
+              <img
+                src={formData.avatar}
+                alt="Avatar Preview"
+                className="w-24 h-24 rounded-full border-4 border-gray-50 dark:border-gray-700 object-cover shadow-md group-hover:brightness-75 transition-all"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full border-4 border-gray-50 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center shadow-md group-hover:brightness-90 transition-all">
+                <span className="material-symbols-outlined text-4xl text-gray-400">add_a_photo</span>
+              </div>
+            )}
+
             <button type="button" className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className="material-symbols-outlined text-white">photo_camera</span>
+              <span className={`material-symbols-outlined text-white ${isUploading ? 'animate-spin' : ''}`}>
+                {isUploading ? 'refresh' : 'photo_camera'}
+              </span>
             </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAvatarUpload}
+              className="hidden"
+              accept="image/*"
+            />
           </div>
-          <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-widest">Foto de Perfil</p>
+          <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-widest">
+            {isUploading ? 'Subiendo...' : 'Tocá para cambiar foto'}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

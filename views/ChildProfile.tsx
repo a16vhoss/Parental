@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { FamilyMember, FamilyRole } from '../types';
 import FamilyTree from '../components/FamilyTree';
 import { calculateAge } from '../utils/dateUtils';
+import { getMemberIcon } from '../utils/memberUtils';
 
 interface ChildProfileProps {
   childId: string | null;
@@ -250,11 +251,17 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm relative overflow-hidden group border border-gray-100 dark:border-gray-800">
             <div className={`absolute top-0 left-0 w-full h-24 bg-gradient-to-r ${child.vitals.sex === 'Male' ? 'from-blue-500/10 to-primary/20' : 'from-primary/10 to-accent-peach/20'}`}></div>
             <div className="relative flex flex-col items-center mt-4 text-center">
-              <img
-                src={child.avatar}
-                alt={child.name}
-                className="h-32 w-32 rounded-full border-4 border-white dark:border-surface-dark shadow-md object-cover transition-transform group-hover:scale-105 duration-500"
-              />
+              {child.avatar ? (
+                <img
+                  src={child.avatar}
+                  alt={child.name}
+                  className="h-32 w-32 rounded-full border-4 border-white dark:border-surface-dark shadow-md object-cover transition-transform group-hover:scale-105 duration-500"
+                />
+              ) : (
+                <div className="h-32 w-32 rounded-full border-4 border-white dark:border-surface-dark shadow-md bg-gray-100 dark:bg-white/5 flex items-center justify-center transition-transform group-hover:scale-105 duration-500">
+                  <span className="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-600">{getMemberIcon(child)}</span>
+                </div>
+              )}
               <h2 className="text-2xl font-bold mt-4 text-[#121716] dark:text-white">{child.name}</h2>
               <p className="text-[#678380] dark:text-gray-400 font-medium">{dynamicAge}</p>
               <div className="mt-3 inline-flex items-center px-3 py-1 bg-primary/10 rounded-full text-xs font-bold text-primary animate-pulse-slow">
