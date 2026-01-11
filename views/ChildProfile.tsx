@@ -27,6 +27,7 @@ interface GrowthPoint {
   heightPercent: number;
 }
 
+
 const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUpdateChild, onBack, onEditMember, onAddMember }) => {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -40,47 +41,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
 
   const child = childrenList.find(c => c.id === childId) || childrenList[0];
 
-  // Helper to calculate age from DOB
-  const calculateAge = (dob?: string) => {
-    if (!dob) return 'Edad desconocida';
-
-    const birthDate = new Date(dob);
-    const today = new Date();
-
-    let years = today.getFullYear() - birthDate.getFullYear();
-    let months = today.getMonth() - birthDate.getMonth();
-    let days = today.getDate() - birthDate.getDate();
-
-    if (days < 0) {
-      months--;
-      // Get days in previous month to add to days
-      // const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-      // days += prevMonth.getDate(); 
-    }
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-
-    if (years === 0 && months === 0) {
-      // Check for strict days difference if needed, but simplistic approach:
-      const diffTime = Math.abs(today.getTime() - birthDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return `${diffDays} días`;
-    }
-
-    if (years === 0) return `${months} ${months === 1 ? 'mes' : 'meses'}`;
-
-    if (years > 0 && years < 3) {
-      return months > 0
-        ? `${years} ${years === 1 ? 'año' : 'años'} y ${months} ${months === 1 ? 'mes' : 'meses'}`
-        : `${years} ${years === 1 ? 'año' : 'años'}`;
-    }
-
-    return `${years} años`;
-  };
-
-  const dynamicAge = calculateAge(child?.vitals?.dob);
+  const { label: dynamicAge } = calculateAge(child?.vitals?.dob);
 
   useEffect(() => {
     if (!childId) return;

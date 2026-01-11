@@ -7,6 +7,31 @@ interface FamilyTreeProps {
     onEditMember: (member: FamilyMember) => void;
 }
 
+import { calculateAge } from '../utils/dateUtils';
+
+// Helper to determine icon based on age and role
+const getMemberIcon = (member: FamilyMember) => {
+    // 1. Check age if calculated
+    if (member.vitals?.dob) {
+        const { years } = calculateAge(member.vitals.dob);
+        if (years < 2) return 'child_care'; // Baby
+        if (years < 13) return 'face'; // Child
+        if (years < 20) return 'face_6'; // Teen
+        if (years < 60) return 'person'; // Adult
+        return 'elderly'; // Senior
+    }
+
+    // 2. Fallback to Role
+    switch (member.role) {
+        case 'Abuelo/a': return 'elderly';
+        case 'Padre/Madre': return 'person'; // or supervisor_account
+        case 'Tío/a': return 'person';
+        case 'Hijo/a': return 'child_care'; // Default to baby/child
+        case 'Primo/a': return 'face';
+        default: return 'person';
+    }
+};
+
 const NodeCard = ({
     member,
     rolePlaceholder,
@@ -30,24 +55,48 @@ const NodeCard = ({
         );
     }
 
+    // Determine if we should show the icon (stage) or the avatar image
+    // Rule: If avatar is the default Unsplash placeholder OR starts with 'https://ui-avatars', show the Stage Icon badge
+    // Actually, user wants "personas tengan un icono segun su edad".
+    // Let's ALWAYS show the icon as a badge on the avatar, OR replace the avatar if it looks generic.
+
+    // Check if avatar is default
+    const isDefaultAvatar = member.avatar.includes('unsplash') || !member.avatar;
+    const stageIcon = getMemberIcon(member);
+
     return (
         <div
             onClick={() => onEditMember(member)}
             className="flex flex-col items-center group cursor-pointer relative z-10"
         >
             <div className="relative">
-                <img
-                    src={member.avatar}
-                    alt={member.name}
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-surface-dark shadow-lg object-cover transition-transform group-hover:scale-105"
-                />
+                {isDefaultAvatar ? (
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-surface-dark shadow-lg bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-105">
+                        <span className="material-symbols-outlined text-4xl text-primary">{stageIcon}</span>
+                    </div>
+                ) : (
+                    <img
+                        src={member.avatar}
+                        alt={member.name}
+                        className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white dark:border-surface-dark shadow-lg object-cover transition-transform group-hover:scale-105"
+                    />
+                )}
+
+                {/* Edit Badge */}
                 <div className="absolute bottom-0 right-0 bg-white dark:bg-surface-dark rounded-full p-1.5 shadow-sm border border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
                     <span className="material-symbols-outlined text-primary text-sm block">edit</span>
                 </div>
+
+                {/* Age/Stage Badge (Always show if not default, to indicate stage) */}
+                {!isDefaultAvatar && (
+                    <div className="absolute top-0 right-0 bg-primary text-white rounded-full p-1 shadow-sm border border-white dark:border-surface-dark scale-75">
+                        <span className="material-symbols-outlined text-xs block">{stageIcon}</span>
+                    </div>
+                )}
             </div>
             <div className="mt-3 text-center bg-white dark:bg-surface-dark px-4 py-1.5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
                 <p className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[100px]">{member.name.split(' ')[0]}</p>
-                <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">{member.role}</p>
+                <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">{rolePlaceholder}</p>
             </div>
         </div>
     );
