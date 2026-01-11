@@ -401,7 +401,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
 
               <div className="flex gap-6 group relative">
                 <div className={`h-12 w-12 rounded-full flex items-center justify-center text-white shrink-0 z-10 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ${child.vitals.sex === 'Male' ? 'bg-blue-400 group-hover:shadow-blue-400/20' : 'bg-accent-peach group-hover:shadow-accent-peach/20'}`}>
-                  <span className="material-symbols-outlined">dentistry</span>
+                  <span className="material-symbols-outlined">{getMemberIcon(child)}</span>
                 </div>
                 <div className="flex-1">
                   <h4 className="font-bold text-lg dark:text-white transition-colors group-hover:text-primary">Recién nacido</h4>
