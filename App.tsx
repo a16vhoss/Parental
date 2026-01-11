@@ -137,12 +137,44 @@ const AppContent: React.FC = () => {
   const handleAddMember = async (newMember: FamilyMember) => {
     try {
       if (!userId) {
-        throw new Error('No user ID found');
+        throw new Error('No se encontró ID de usuario (inicia sesión nuevamente)');
+      }
+
+      let targetFamilyId = currentFamilyId;
+
+      // Auto-create family if user doesn't have one
+      if (!targetFamilyId) {
+        console.log('No family found, creating new family for user...');
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        // 1. Create Family
+        const { data: familyData, error: familyError } = await supabase
+          .from('families')
+          .insert([{
+            name: `Familia de ${userName || 'Usuario'}`,
+            invite_code: code,
+            created_by: userId
+          }])
+          .select()
+          .single();
+
+        if (familyError) throw new Error(`Error creando familia: ${familyError.message}`);
+
+        targetFamilyId = familyData.id;
+        setCurrentFamilyId(targetFamilyId);
+
+        // 2. Link Profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ family_id: targetFamilyId, role: 'admin' })
+          .eq('id', userId);
+
+        if (profileError) console.error('Error updating profile with new family:', profileError);
       }
 
       const { data, error } = await supabase
         .from('family_members')
-        .insert({ ...newMember, family_id: currentFamilyId, created_by: userId })
+        .insert({ ...newMember, family_id: targetFamilyId, created_by: userId })
         .select()
         .single();
 
@@ -157,8 +189,10 @@ const AppContent: React.FC = () => {
         setEditingMember(undefined);
         navigate('/familia');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Unexpected error adding member:', err);
+      // Show user feedback
+      alert(`Error al guardar: ${err.message || 'Error desconocido'}`);
     }
   };
 
@@ -174,15 +208,14 @@ const AppContent: React.FC = () => {
 
       if (error) {
         console.error('Error updating member:', error);
-        if (error.message !== 'Database not configured') {
-          setFamily(previousFamily);
-        }
+        throw error;
       } else {
         setShowAddChild(false);
         setEditingMember(undefined);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating member:', err);
+      alert(`Error al actualizar: ${err.message || 'Error desconocido'}`);
       setFamily(previousFamily);
     }
   };
