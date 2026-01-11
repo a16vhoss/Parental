@@ -13,6 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, currentPath }) => {
 
   const navItems = [
     { path: '/dashboard', label: 'Panel de Control', icon: 'grid_view' },
+    { icon: 'menu_book', label: 'Guías', path: '/guias' },
     { icon: 'health_and_safety', label: 'Directorio', path: '/directorio' },
     { icon: 'auto_stories', label: 'Blog', path: '/blog' },
     { icon: 'settings', label: 'Configuración', path: '/configuracion' },
@@ -27,6 +28,9 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, currentPath }) => {
   const isActive = (path: string) => {
     if (path === '/familia') {
       return currentPath.startsWith('/familia');
+    }
+    if (path === '/guias') {
+      return currentPath.startsWith('/guias');
     }
     return currentPath === path;
   };

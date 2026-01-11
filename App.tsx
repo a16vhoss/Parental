@@ -12,6 +12,9 @@ import Blog from './views/Blog';
 import EmergencyAlert from './views/EmergencyAlert';
 import AddChild from './views/AddChild';
 import FamilyView from './views/FamilyView';
+import GuidesView from './views/GuidesView';
+import GuideDetail from './views/GuideDetail';
+import ModuleView from './views/ModuleView';
 import Login from './views/Login';
 import Sidebar from './components/Sidebar';
 import MobileNav from './components/MobileNav';
@@ -377,6 +380,28 @@ const AppContent: React.FC = () => {
             <Route path="/familia/:id" element={
               <ProtectedRoute>
                 <ChildProfileWrapper />
+              </ProtectedRoute>
+            } />
+
+            {/* Guides Routes */}
+            <Route path="/guias" element={
+              <ProtectedRoute>
+                <GuidesView
+                  childrenList={family}
+                  onAddChild={() => navigate('/familia/nuevo')}
+                />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/guias/:stageId" element={
+              <ProtectedRoute>
+                <GuideDetail childrenList={family} />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/guias/:stageId/:moduleId" element={
+              <ProtectedRoute>
+                <ModuleView />
               </ProtectedRoute>
             } />
 
