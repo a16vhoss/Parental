@@ -91,7 +91,7 @@ const AlertDetails: React.FC = () => {
 
                     <div className="flex flex-col md:flex-row gap-8">
                         <div className="flex-shrink-0">
-                            <img src={child.avatar || `https://ui-avatars.com/api/?name=${child.name}&background=random`} className="w-48 h-48 rounded-xl object-cover border-4 border-red-100 shadow-lg" />
+                            <img src={alert.photo_url || child.avatar || `https://ui-avatars.com/api/?name=${child.name}&background=random`} className="w-48 h-48 rounded-xl object-cover border-4 border-red-100 shadow-lg" />
                         </div>
                         <div className="flex-1 space-y-4">
                             <div>
