@@ -249,6 +249,7 @@ const AppContent: React.FC = () => {
       <ChildProfile
         childId={id || null}
         childrenList={family}
+        currentUserId={userId}
         onUpdateChild={handleUpdateMember}
         onBack={() => navigate('/familia')}
         onEditMember={handleEditMember}

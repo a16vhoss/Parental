@@ -7,6 +7,7 @@ interface FamilyTreeProps {
     members: FamilyMember[];
     onAddMember: (role: 'Abuelo/a' | 'Padre/Madre' | 'Hijo/a') => void;
     onEditMember: (member: FamilyMember) => void;
+    currentUserId?: string;
 }
 
 
@@ -24,6 +25,7 @@ const NodeCard = ({
     rolePlaceholder: string;
     onAddMember: (role: any) => void;
     onEditMember: (member: FamilyMember) => void;
+    currentUserId?: string;
 }) => {
     if (!member) {
         return (
@@ -46,10 +48,13 @@ const NodeCard = ({
     const isDefaultAvatar = member.avatar.includes('unsplash') || !member.avatar;
     const stageIcon = getMemberIcon(member);
 
+    // Check ownership
+    const canEdit = !member.created_by || member.created_by === currentUserId;
+
     return (
         <div
-            onClick={() => onEditMember(member)}
-            className="flex flex-col items-center group cursor-pointer relative z-10"
+            onClick={() => canEdit && onEditMember(member)}
+            className={`flex flex-col items-center group relative z-10 ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
         >
             <div className="relative">
                 {isDefaultAvatar ? (
@@ -65,9 +70,11 @@ const NodeCard = ({
                 )}
 
                 {/* Edit Badge */}
-                <div className="absolute bottom-0 right-0 bg-white dark:bg-surface-dark rounded-full p-1.5 shadow-sm border border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
-                    <span className="material-symbols-outlined text-primary text-sm block">edit</span>
-                </div>
+                {canEdit && (
+                    <div className="absolute bottom-0 right-0 bg-white dark:bg-surface-dark rounded-full p-1.5 shadow-sm border border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
+                        <span className="material-symbols-outlined text-primary text-sm block">edit</span>
+                    </div>
+                )}
 
                 {/* Age/Stage Badge (Always show if not default, to indicate stage) */}
                 {!isDefaultAvatar && (
@@ -84,7 +91,7 @@ const NodeCard = ({
     );
 };
 
-const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMember }) => {
+const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMember, currentUserId }) => {
     // Group members by generation
     const grandparents = members.filter(m => m.role === 'Abuelo/a');
     const parents = members.filter(m => m.role === 'Padre/Madre');
@@ -108,15 +115,15 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMem
                         {/* Ensure at least 2 slots for grandparents visually, filling with existing or placeholders */}
                         <div className="flex gap-6">
                             {grandparents.length > 0 ? (
-                                grandparents.map(gp => <NodeCard key={gp.id} member={gp} rolePlaceholder="Abuelo/a" onAddMember={onAddMember} onEditMember={onEditMember} />)
+                                grandparents.map(gp => <NodeCard key={gp.id} member={gp} rolePlaceholder="Abuelo/a" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />)
                             ) : (
                                 <>
-                                    <NodeCard rolePlaceholder="Abuela" onAddMember={onAddMember} onEditMember={onEditMember} />
-                                    <NodeCard rolePlaceholder="Abuelo" onAddMember={onAddMember} onEditMember={onEditMember} />
+                                    <NodeCard rolePlaceholder="Abuela" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />
+                                    <NodeCard rolePlaceholder="Abuelo" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />
                                 </>
                             )}
                             {grandparents.length > 0 && grandparents.length < 4 && (
-                                <NodeCard rolePlaceholder="Abuelo/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+                                <NodeCard rolePlaceholder="Abuelo/a" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />
                             )}
                         </div>
                     </div>
@@ -127,15 +134,15 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMem
                     {/* Generation 2: Parents */}
                     <div className="flex justify-center gap-12 relative z-10">
                         {parents.length > 0 ? (
-                            parents.map(p => <NodeCard key={p.id} member={p} rolePlaceholder="Padre/Madre" onAddMember={onAddMember} onEditMember={onEditMember} />)
+                            parents.map(p => <NodeCard key={p.id} member={p} rolePlaceholder="Padre/Madre" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />)
                         ) : (
                             <>
-                                <NodeCard rolePlaceholder="Mamá" onAddMember={onAddMember} onEditMember={onEditMember} />
-                                <NodeCard rolePlaceholder="Papá" onAddMember={onAddMember} onEditMember={onEditMember} />
+                                <NodeCard rolePlaceholder="Mamá" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />
+                                <NodeCard rolePlaceholder="Papá" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />
                             </>
                         )}
                         {parents.length > 0 && parents.length < 2 && (
-                            <NodeCard rolePlaceholder="Padre/Madre" onAddMember={onAddMember} onEditMember={onEditMember} />
+                            <NodeCard rolePlaceholder="Padre/Madre" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />
                         )}
                     </div>
 
@@ -149,18 +156,18 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({ members, onAddMember, onEditMem
 
                         <div className="flex justify-center gap-6 relative z-10">
                             {children.map(child => (
-                                <NodeCard key={child.id} member={child} rolePlaceholder="Hijo/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+                                <NodeCard key={child.id} member={child} rolePlaceholder="Hijo/a" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />
                             ))}
-                            <NodeCard rolePlaceholder="Hermano/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+                            <NodeCard rolePlaceholder="Hermano/a" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />
 
                             {/* Cousins Section */}
                             {cousins.length > 0 && (
                                 <>
                                     <div className="w-px bg-gray-200 dark:bg-gray-700 h-12 self-center mx-2"></div>
-                                    {cousins.map(c => <NodeCard key={c.id} member={c} rolePlaceholder="Primo/a" onAddMember={onAddMember} onEditMember={onEditMember} />)}
+                                    {cousins.map(c => <NodeCard key={c.id} member={c} rolePlaceholder="Primo/a" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />)}
                                 </>
                             )}
-                            <NodeCard rolePlaceholder="Primo/a" onAddMember={onAddMember} onEditMember={onEditMember} />
+                            <NodeCard rolePlaceholder="Primo/a" onAddMember={onAddMember} onEditMember={onEditMember} currentUserId={currentUserId} />
                         </div>
                     </div>
                 </div>

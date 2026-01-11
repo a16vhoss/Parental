@@ -21,6 +21,7 @@ export interface FamilyMember {
   role: FamilyRole;
   age: string;
   email?: string;
+  created_by?: string;
   status: string;
   avatar: string;
   vitals: {

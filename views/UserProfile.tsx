@@ -255,7 +255,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                       <span className="text-sm font-bold text-[#121716] dark:text-white truncate">{member.name}</span>
                       <span className="text-[10px] uppercase font-bold text-[#678380] dark:text-gray-400">{member.role}</span>
                     </div>
-                    {onEditMember && (
+                    {onEditMember && (member.created_by === userId || !member.created_by) && (
                       <button
                         onClick={() => onEditMember(member)}
                         className="p-1.5 text-gray-400 hover:text-primary hover:bg-white dark:hover:bg-white/10 rounded-full transition-all"

@@ -12,6 +12,7 @@ interface ChildProfileProps {
   childId: string | null;
   // Changed Baby[] to FamilyMember[]
   childrenList: FamilyMember[];
+  currentUserId?: string;
   // Changed Baby to FamilyMember
   onUpdateChild: (child: FamilyMember) => void;
   onBack: () => void;
@@ -30,7 +31,7 @@ interface GrowthPoint {
 }
 
 
-const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUpdateChild, onBack, onEditMember, onAddMember }) => {
+const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, currentUserId, onUpdateChild, onBack, onEditMember, onAddMember }) => {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const [growthLogs, setGrowthLogs] = useState<GrowthPoint[]>([]);
@@ -42,6 +43,9 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
 
   const child = childrenList.find(c => c.id === childId) || childrenList[0];
+
+  // Check if current user is the creator (owner)
+  const canEdit = child && (!child.created_by || child.created_by === currentUserId);
 
   const { label: dynamicAge } = calculateAge(child?.vitals?.dob);
 
@@ -219,7 +223,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
           </div>
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold text-[#121716] dark:text-white">Perfil de {child.name.split(' ')[0]}</h1>
-            {onEditMember && (
+            {onEditMember && canEdit && (
               <button
                 onClick={() => onEditMember(child)}
                 className="p-1.5 bg-gray-100 dark:bg-white/10 text-gray-500 hover:text-primary rounded-full transition-all"
@@ -237,12 +241,15 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
           >
             <span className="material-symbols-outlined text-[20px]">share</span> Compartir
           </button>
-          <button
-            onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 text-sm font-bold active:scale-95"
-          >
-            <span className="material-symbols-outlined text-[20px]">add</span> Registro
-          </button>
+
+          {canEdit && (
+            <button
+              onClick={() => handleOpenModal()}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 text-sm font-bold active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[20px]">add</span> Registro
+            </button>
+          )}
         </div>
       </div>
 
@@ -420,6 +427,7 @@ const ChildProfile: React.FC<ChildProfileProps> = ({ childId, childrenList, onUp
               members={childrenList}
               onAddMember={(role) => onAddMember && onAddMember(role)}
               onEditMember={(member) => onEditMember && onEditMember(member)}
+              currentUserId={currentUserId}
             />
           </div>
         </div>
