@@ -90,6 +90,14 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
     }
   };
 
+  const handleRemoveAvatar = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the upload click
+    const confirmDelete = window.confirm('¿Seguro que quieres eliminar la foto?');
+    if (confirmDelete) {
+      setFormData(prev => ({ ...prev, avatar: '' }));
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -153,11 +161,21 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
         <div className="flex flex-col items-center mb-4">
           <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
             {formData.avatar ? (
-              <img
-                src={formData.avatar}
-                alt="Avatar Preview"
-                className="w-24 h-24 rounded-full border-4 border-gray-50 dark:border-gray-700 object-cover shadow-md group-hover:brightness-75 transition-all"
-              />
+              <>
+                <img
+                  src={formData.avatar}
+                  alt="Avatar Preview"
+                  className="w-24 h-24 rounded-full border-4 border-gray-50 dark:border-gray-700 object-cover shadow-md group-hover:brightness-75 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors z-20"
+                  title="Eliminar foto"
+                >
+                  <span className="material-symbols-outlined text-sm block">close</span>
+                </button>
+              </>
             ) : (
               <div className="w-24 h-24 rounded-full border-4 border-gray-50 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center shadow-md group-hover:brightness-90 transition-all">
                 <span className="material-symbols-outlined text-4xl text-gray-400">add_a_photo</span>
