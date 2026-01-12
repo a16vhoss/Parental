@@ -26,6 +26,7 @@ import MobileNav from './components/MobileNav';
 import { supabase } from './lib/supabase';
 import AlertNotification from './components/AlertNotification';
 import { calculateDistance } from './lib/geo';
+import { useAlarms } from './hooks/useAlarms';
 
 import ChatBot from './components/ChatBot';
 
@@ -43,8 +44,11 @@ const AppContent: React.FC = () => {
   const [editingMember, setEditingMember] = useState<FamilyMember | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('home');
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-  const [isSessionLoading, setIsSessionLoading] = useState(true); // Track if session is being fetched
+  const [isSessionLoading, setIsSessionLoading] = useState(true); const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [activeAlert, setActiveAlert] = useState<any>(null);
+
+  // Initialize Alarms (Global Check)
+  useAlarms(session?.user?.id);
 
   const userName = session?.user?.user_metadata?.full_name || 'Usuario';
   const userEmail = session?.user?.email || '';
