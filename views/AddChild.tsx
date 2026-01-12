@@ -35,15 +35,62 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
     fileInputRef.current?.click();
   };
 
+  // Helper to compress image
+  const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800; // Resize to reasonable avatar size
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Compression failed'));
+            }
+          }, 'image/jpeg', 0.8); // 80% quality JPEG
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       if (!event.target.files || event.target.files.length === 0) {
         return;
       }
 
-      const file = event.target.files[0];
+      let file = event.target.files[0];
       const fileExt = file.name.split('.').pop()?.toLowerCase();
-      const fileName = `member_${Date.now()}.${fileExt}`;
+      // Force JPEG for compressed output usually, but keep extension logic simple
+      const fileName = `member_${Date.now()}.jpg`;
 
       // Validate file type
       if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt || '')) {
@@ -51,17 +98,17 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
         return;
       }
 
-      // Validate file size (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        alert('La imagen es muy grande. Máximo 2MB.');
-        return;
-      }
-
       setIsUploading(true);
 
+      // Compress if larger than 1MB (proactive optimization)
+      if (file.size > 1 * 1024 * 1024) {
+        console.log('Compressing large image...');
+        const compressedBlob = await compressImage(file);
+        // Cast blob to File for Supabase upload compatibility (it acts like a file)
+        file = new File([compressedBlob], fileName, { type: 'image/jpeg' });
+      }
+
       // 1. Upload to Supabase Storage
-      // Use userId to organize files and satisfy RLS policies (restricted to user's folder)
-      // If userId is missing (shouldn't happen in auth'd context), fall back to public 'members' folder but warn
       const basePath = userId ? userId : 'anonymous';
       const filePath = `${basePath}/${fileName}`;
 
@@ -79,7 +126,8 @@ const AddChild: React.FC<AddChildProps> = ({ memberToEdit, onSave, onCancel, use
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
       if (data) {
-        setFormData(prev => ({ ...prev, avatar: data.publicUrl }));
+        // Force a fresh URL with timestamp to avoid caching issues if overwriting
+        setFormData(prev => ({ ...prev, avatar: `${data.publicUrl}?t=${Date.now()}` }));
       }
 
     } catch (error: any) {
