@@ -14,7 +14,7 @@ const MobileNav: React.FC = () => {
         { path: '/dashboard', label: 'Inicio', icon: 'grid_view' },
         { path: '/salud', label: 'Salud', icon: 'medical_services' },
         { path: '/alerta', label: 'Alerta', icon: 'emergency_home', isSpecial: true },
-        { path: '/blog', label: 'Blog', icon: 'auto_stories' },
+        { path: '/directorio', label: 'Directorio', icon: 'menu_book' },
         { path: '/perfil', label: 'Mi Cuenta', icon: 'person' },
     ];
 
