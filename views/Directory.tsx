@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { GOOGLE_MAPS_API_KEY } from '../lib/maps';
 import MapComponent, { Place } from '../components/MapComponent';
 
 const Directory: React.FC = () => {
@@ -13,7 +14,7 @@ const Directory: React.FC = () => {
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
 
   // Use env var or fallback
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+  const apiKey = GOOGLE_MAPS_API_KEY || '';
 
   const categories = [
     'Hospitales',
