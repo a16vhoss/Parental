@@ -1,8 +1,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim() || 'https://ongqtqeeecntxsrllmol.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZ3F0cWVlZWNudHhzcmxsbW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NjI3MjgsImV4cCI6MjA4MzMzODcyOH0.P2hv_4QLgDCja-NrWbVawp24iu8VX2rGwHqUSsAP7Tc';
 
 /**
  * World-class resilience:
