@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { FamilyMember } from '../types';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { GOOGLE_MAPS_API_KEY } from '../lib/maps';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface EmergencyAlertProps {
@@ -275,7 +276,7 @@ const EmergencyAlert: React.FC<EmergencyAlertProps> = ({ onCancel }) => {
               {/* Interactive Google Map */}
               <div className="flex-grow bg-gray-200 relative">
                 {location ? (
-                  <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+                  <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
                     <Map
                       mapId="amber-alert-map"
                       defaultCenter={location}

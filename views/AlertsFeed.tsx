@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { calculateDistance } from '../lib/geo';
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+import { GOOGLE_MAPS_API_KEY } from '../lib/maps';
 
 interface AlertWithChild {
     id: string;
@@ -141,7 +142,7 @@ const AlertsFeed: React.FC = () => {
                         >
                             {/* Maps Preview Header */}
                             <div className="h-40 bg-gray-200 relative">
-                                <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+                                <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
                                     <Map
                                         mapId={`mini-map-${alert.id}`}
                                         defaultCenter={{ lat: alert.latitude, lng: alert.longitude }}

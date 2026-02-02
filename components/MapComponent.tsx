@@ -6,8 +6,9 @@ import {
     Pin,
     InfoWindow,
     useMap,
-    useMapsLibrary
+    useMapsLibrary,
 } from '@vis.gl/react-google-maps';
+import { GOOGLE_MAPS_API_KEY } from '../lib/maps';
 
 interface Location {
     lat: number;
@@ -234,7 +235,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     };
 
     return (
-        <APIProvider apiKey={apiKey} libraries={['places', 'marker']}>
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={['places', 'marker']}>
             <div className="w-full h-full relative">
                 <Map
                     mapId={"bf51a910020fa25a"}
@@ -265,7 +266,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                     {/* Places Markers */}
                     {places.map((place, index) => (
                         <AdvancedMarker
-                            key={`${place.place_id}-${index}`}
+                            key={`${place.place_id} -${index} `}
                             position={place.position}
                             onClick={() => handleMarkerClick(place)}
                             title={place.name}
@@ -309,7 +310,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                                         </span>
                                     )}
                                     {places.find(p => p.name === activeMarker)?.isOpen !== undefined && (
-                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${places.find(p => p.name === activeMarker)?.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                        <span className={`text - [10px] font - bold px - 1.5 py - 0.5 rounded ${places.find(p => p.name === activeMarker)?.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} `}>
                                             {places.find(p => p.name === activeMarker)?.isOpen ? 'ABIERTO' : 'CERRADO'}
                                         </span>
                                     )}
@@ -326,7 +327,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                                         }}
                                     >
                                         Ver en Maps
-                                    </button>
+                                    </button >
                                     <button
                                         className="text-xs bg-blue-600 text-white px-2 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 shadow-lg shadow-blue-200"
                                         onClick={() => {
@@ -339,13 +340,13 @@ const MapComponent: React.FC<MapComponentProps> = ({
                                         <span className="material-symbols-outlined text-[14px]">directions</span>
                                         Ir ahora
                                     </button>
-                                </div>
-                            </div>
-                        </InfoWindow>
+                                </div >
+                            </div >
+                        </InfoWindow >
                     )}
-                </Map>
-            </div>
-        </APIProvider>
+                </Map >
+            </div >
+        </APIProvider >
     );
 };
 
